@@ -1,7 +1,7 @@
 export interface FinishInterviewData {
-  bye: string;
+  interviewId: number;
 }
 
 export interface FinishInterviewView {
-  bye: string;
+  result: string;
 }

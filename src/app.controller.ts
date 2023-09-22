@@ -55,7 +55,7 @@ export class AppController {
   }
 
   /**
-   * 면접 종료하기.
+   * 면접 결과 확인하기.
    *
    * @tag Interview
    *

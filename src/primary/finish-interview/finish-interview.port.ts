@@ -1,18 +1,28 @@
-import { Injectable } from '@nestjs/common';
-import { LlmManager, VectorStoreManager } from '@src/secondary';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { MemoryStoreManager } from '@src/secondary';
 import { FinishInterviewData, FinishInterviewView } from './finish-interview.data';
 
 @Injectable()
 export class FinishInterviewPort {
-  constructor(
-    private readonly llmManager: LlmManager,
-    private readonly vectorStoreManager: VectorStoreManager,
-  ) {}
+  constructor(private readonly memoryStoreManager: MemoryStoreManager) {}
 
   async execute(data: FinishInterviewData): Promise<FinishInterviewView> {
-    this.llmManager.predict('qwe');
-    this.vectorStoreManager.similaritySearch('asd');
-    console.log('finish', data);
-    return { bye: 'asd' };
+    const interviewPaper = await this.memoryStoreManager.get({
+      type: 'interviewPaper',
+      id: data.interviewId,
+    });
+    if (interviewPaper.filter((each) => each.isCompleted === false).length) {
+      throw new BadRequestException(`interview is not finished. id=${data.interviewId}`);
+    }
+
+    const interviewHistory = await this.memoryStoreManager.get({
+      type: 'interviewHistory',
+      id: data.interviewId,
+    });
+
+    console.log(4444, JSON.stringify(interviewPaper));
+    console.log(5555, interviewHistory);
+
+    return { result: interviewHistory.join(', ') };
   }
 }

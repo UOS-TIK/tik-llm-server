@@ -32,18 +32,18 @@ export class SpeakToInterviewerPort {
     });
 
     const result = await this.llmManager.predict<{
-      interviewItem: typeof currInterviewItem;
+      currInterviewItem: typeof currInterviewItem;
       reply: string;
     }>(
       this.buildPrompt({
         currInterviewItem,
         nextInterviewItem,
-        interviewHistory: interviewHistory.slice(-5),
+        interviewHistory,
         message: data.message,
       }),
     );
 
-    interviewPaper[itemIndex] = result.interviewItem;
+    interviewPaper[itemIndex] = result.currInterviewItem;
 
     await this.memoryStoreManager.set({
       type: 'interviewPaper',
@@ -60,9 +60,9 @@ export class SpeakToInterviewerPort {
     return { reply: result.reply };
   }
 
-  private buildPrompt(params: {
-    currInterviewItem: object;
-    nextInterviewItem: object | null;
+  private buildPrompt<T extends { question: string }>(params: {
+    currInterviewItem: T;
+    nextInterviewItem: T | null;
     interviewHistory: string[];
     message: string;
   }) {
@@ -100,11 +100,11 @@ type InterviewItem = {
 };
 
 ###이전 대화 기록(최근 4개):
-${JSON.stringify(params.interviewHistory)}
+${JSON.stringify(params.interviewHistory.slice(-5, -1))}
 
 ###현재 대화 내용:
 **면접관이 한말
-${params.interviewHistory.pop()}
+${params.interviewHistory.slice(-1)}
 
 **지원자가 한말:
 ${params.message}
@@ -112,16 +112,17 @@ ${params.message}
 
 ###응답 예시:
 응답은 아래 JSON 양식을 따라 주세요.
-1. interviewItem: (필수)
+1. currInterviewItem: (필수)
 - 적절하게 currInterviewItem의 항목을 업데이트 해주세요.
+- isCompleted가 true이고 nextInterviewItem이 null이라면 면접을 마무리하고 지원자에게 면접 종료를 안내해주세요.
 
 2. reply: (필수)
 - 현재 대화 내용의 지원자가 한말에 적절한 대답을 해주세요.
 - 면접의 진행을 위해 현재 주제(currInterviewItem)에 대한 추가 질문(tailQuestions)을 하거나 현재 주제를 마무리하고 다음 주제에 대해 질문을 해주세요.
-- 만약, 다음 주제가 null이라면 지원자에게 면접 종료를 안내해주세요. 
+- 만약, isCompleted가 true이고 다음 주제가 null이라면 면접을 마무리하고 지원자에게 면접 종료를 안내해주세요.
 
 {
-  "interviewItem의": {}, 
+  "currInterviewItem": {}, 
   "reply": ""
 }
 `.trim();

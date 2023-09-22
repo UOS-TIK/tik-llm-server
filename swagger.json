@@ -35,7 +35,7 @@
         },
         "responses": {
           "201": {
-            "description": "string",
+            "description": "response type",
             "content": {
               "application/json": {
                 "schema": {
@@ -46,7 +46,8 @@
             "x-nestia-encrypted": false
           }
         },
-        "description": "면접 질문 생성",
+        "summary": "면접 시작 하기",
+        "description": "면접 시작 하기.",
         "security": [
           {
             "bearer": []
@@ -93,7 +94,95 @@
             "name": "return",
             "text": [
               {
-                "text": "string",
+                "text": "response type",
+                "kind": "text"
+              }
+            ]
+          }
+        ],
+        "x-nestia-method": "POST"
+      }
+    },
+    "/speak": {
+      "post": {
+        "tags": [
+          "Interview"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "req body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeakToInterviewerData"
+              }
+            }
+          },
+          "required": true,
+          "x-nestia-encrypted": false
+        },
+        "responses": {
+          "201": {
+            "description": "response type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeakToInterviewerView"
+                }
+              }
+            },
+            "x-nestia-encrypted": false
+          }
+        },
+        "summary": "면접관에게 대답하기",
+        "description": "면접관에게 대답하기.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "x-nestia-namespace": "speak.speakToInterviewer",
+        "x-nestia-jsDocTags": [
+          {
+            "name": "tag",
+            "text": [
+              {
+                "text": "Interview",
+                "kind": "text"
+              }
+            ]
+          },
+          {
+            "name": "security",
+            "text": [
+              {
+                "text": "bearer",
+                "kind": "text"
+              }
+            ]
+          },
+          {
+            "name": "param",
+            "text": [
+              {
+                "text": "data",
+                "kind": "parameterName"
+              },
+              {
+                "text": " ",
+                "kind": "space"
+              },
+              {
+                "text": "req body",
+                "kind": "text"
+              }
+            ]
+          },
+          {
+            "name": "return",
+            "text": [
+              {
+                "text": "response type",
                 "kind": "text"
               }
             ]
@@ -122,7 +211,7 @@
         },
         "responses": {
           "201": {
-            "description": "string",
+            "description": "response type",
             "content": {
               "application/json": {
                 "schema": {
@@ -133,7 +222,8 @@
             "x-nestia-encrypted": false
           }
         },
-        "description": "면접 종료",
+        "summary": "면접 결과 확인하기",
+        "description": "면접 결과 확인하기.",
         "security": [
           {
             "bearer": []
@@ -180,7 +270,7 @@
             "name": "return",
             "text": [
               {
-                "text": "string",
+                "text": "response type",
                 "kind": "text"
               }
             ]
@@ -195,22 +285,80 @@
       "InitInterviewData": {
         "type": "object",
         "properties": {
-          "hi": {
+          "id": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "string"
+            "type": "number"
+          },
+          "techStack": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "array",
+            "items": {
+              "x-typia-required": true,
+              "x-typia-optional": false,
+              "type": "string"
+            }
+          },
+          "jobDescription": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "array",
+            "items": {
+              "x-typia-required": true,
+              "x-typia-optional": false,
+              "type": "string"
+            }
+          },
+          "options": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "array",
+            "items": {
+              "x-typia-required": true,
+              "x-typia-optional": false,
+              "type": "string"
+            }
           }
         },
         "nullable": false,
         "required": [
-          "hi"
+          "id",
+          "techStack",
+          "jobDescription",
+          "options"
         ],
         "x-typia-jsDocTags": []
       },
       "InitInterviewView": {
         "type": "object",
         "properties": {
-          "hi": {
+          "questions": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "array",
+            "items": {
+              "x-typia-required": true,
+              "x-typia-optional": false,
+              "type": "string"
+            }
+          }
+        },
+        "nullable": false,
+        "required": [
+          "questions"
+        ],
+        "x-typia-jsDocTags": []
+      },
+      "SpeakToInterviewerData": {
+        "type": "object",
+        "properties": {
+          "interviewId": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "number"
+          },
+          "message": {
             "x-typia-required": true,
             "x-typia-optional": false,
             "type": "string"
@@ -218,29 +366,45 @@
         },
         "nullable": false,
         "required": [
-          "hi"
+          "interviewId",
+          "message"
+        ],
+        "x-typia-jsDocTags": []
+      },
+      "SpeakToInterviewerView": {
+        "type": "object",
+        "properties": {
+          "reply": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string"
+          }
+        },
+        "nullable": false,
+        "required": [
+          "reply"
         ],
         "x-typia-jsDocTags": []
       },
       "FinishInterviewData": {
         "type": "object",
         "properties": {
-          "bye": {
+          "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "string"
+            "type": "number"
           }
         },
         "nullable": false,
         "required": [
-          "bye"
+          "interviewId"
         ],
         "x-typia-jsDocTags": []
       },
       "FinishInterviewView": {
         "type": "object",
         "properties": {
-          "bye": {
+          "result": {
             "x-typia-required": true,
             "x-typia-optional": false,
             "type": "string"
@@ -248,7 +412,7 @@
         },
         "nullable": false,
         "required": [
-          "bye"
+          "result"
         ],
         "x-typia-jsDocTags": []
       }

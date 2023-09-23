@@ -41,28 +41,28 @@ export class InitInterviewPort {
 
   private buildPrompt(params: InitInterviewData) {
     return `
-###역할: 
-당신은 기술 면접을 준비하는 시니어 개발자입니다.
-아래 주어진 지원자의 개발스택, 직무 설명서를 참고하여 면접 질문지를 작성하세요.
+###Role:
+You are a senior developer preparing for a technical interview.
+Please create the interview questionnaire in Korean using the information given below.
 
-###지원자의 개발스택:
+###Applicant's Tech Stack:
 ${params.techStack.join(', ')}
 
-###직무 설명서:
+###Job Description:
 ${params.jobDescription.join(',')}
 
-###응답 예시:
-응답은 아래 JSON 양식을 따라 주세요.
-1. keywords: 스프링부트, JPA, RDBMS, Javascript, React 등 복수 선택 가능합니다.
-2. questions: 따로 묻고 싶은 질문 리스트입니다.
-
-단, 다음의 사항을 지켜주세요. 
-${params.options.join(', ')}
-
+###Response Example:
+Please follow this JSON format for your response
 {
   "keywords": [""], 
   "questions": [""]
 }
+
+1. keywords: You can select multiple keywords such as Spring Boot, JPA, RDBMS, JavaScript, React.
+2. questions: A list of specific questions you would like to ask.
+
+###Requirements:
+${params.options.join(',')}
 `.trim();
   }
 }

@@ -15,11 +15,13 @@ export class FinishInterviewPort {
     //   throw new BadRequestException(`interview is not finished. id=${data.interviewId}`);
     // }
 
-    // const interviewHistory = await this.memoryStoreManager.get({
-    //   type: 'interviewHistory',
-    //   id: data.interviewId,
-    // });
+    const interviewHistory = await this.memoryStoreManager.get({
+      type: 'interviewHistory',
+      id: data.interviewId,
+    });
 
-    return { result: JSON.stringify(interviewPaper) };
+    console.log(interviewHistory);
+
+    return { result: JSON.stringify(interviewPaper, null, 2) };
   }
 }

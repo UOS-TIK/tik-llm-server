@@ -5,9 +5,11 @@ import { environment } from './environment';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  await app.listen(environment.port);
+  app.enableCors({ origin: 'http://127.0.0.1:5500' });
 
-  console.log(`Server is running on ${environment.port}`);
+  await app.listen(environment.port);
 }
 
-bootstrap();
+bootstrap().then(() => {
+  console.log(`Server is running on ${environment.port}`);
+});

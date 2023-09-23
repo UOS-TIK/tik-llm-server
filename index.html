@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body style="font-size: 24px">
+    <div>
+      <p>interviewId</p>
+      <input type="text" id="interviewId" />
+    </div>
+
+    <div>
+      <p>message</p>
+      <textarea name="message" id="message" cols="100" rows="4"></textarea>
+    </div>
+
+    <div>
+      <p>interviewPaper</p>
+      <textarea name="interviewPaper" id="interviewPaper" cols="100" rows="40" disabled></textarea>
+    </div>
+  </body>
+
+  <script>
+    const interviewIdEl = document.getElementById('interviewId');
+    const messageEl = document.getElementById('message');
+    const interviewPaperEl = document.getElementById('interviewPaper');
+
+    console.log('면접관: 안녕하세요. 지원해주셔서 감사드리며 오늘 면접 잘 부탁드리겠습니다.');
+
+    messageEl.addEventListener('keypress', async (event) => {
+      if (!event.shiftKey && event.key === 'Enter' && messageEl.value.trim()) {
+        event.preventDefault();
+
+        const message = messageEl.value.trim();
+        console.log(`지원자: ${message}`);
+        messageEl.value = '로딩중...';
+        messageEl.disabled = true;
+
+        const speakRes = await fetch('http://localhost:4000/speak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            interviewId: +interviewIdEl.value,
+            message,
+          }),
+        });
+
+        const finishRes = await fetch('http://localhost:4000/finish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            interviewId: +interviewIdEl.value,
+          }),
+        });
+
+        console.log(`면접관: ${(await speakRes.json()).reply}`);
+
+        interviewPaperEl.value = (await finishRes.json()).result;
+        messageEl.disabled = false;
+        messageEl.value = '';
+      }
+    });
+  </script>
+</html>

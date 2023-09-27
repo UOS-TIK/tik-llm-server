@@ -1,7 +1,7 @@
 import { INestiaConfig } from '@nestia/sdk';
 
 const config: INestiaConfig = {
-  input: 'src/*.controller.ts',
+  input: 'src/app.controller.ts',
   swagger: {
     output: 'swagger.json',
     security: {

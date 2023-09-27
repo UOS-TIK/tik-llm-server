@@ -15,21 +15,17 @@ export class FinishInterviewPort {
       id: data.interviewId,
     });
 
-    const interviewPaper = await this.memoryStoreManager.get({
+    const interviewPaper = await this.getInterviewPaper(data.interviewId);
+
+    await this.memoryStoreManager.set({
       type: 'interviewPaper',
       id: data.interviewId,
+      value: interviewPaper,
     });
-    if (interviewPaper.filter((each) => each.isCompleted === false).length) {
-      throw new BadRequestException(`interview is not finished. id=${data.interviewId}`);
-    }
-
-    const result = await this.llmManager.predict<{
-      interviewPaper: Required<typeof interviewPaper>;
-    }>(this.buildPrompt(interviewPaper));
 
     return {
       interviewHistory,
-      interviewPaper: JSON.stringify(result.interviewPaper, null, 2),
+      interviewPaper,
     };
   }
 
@@ -37,7 +33,7 @@ export class FinishInterviewPort {
     return `
 ###Role
 You are a senior developer evaluating interview applicants' answers.
-Look at the interview paper below and give them a score with comments in Korean.
+Look at the interview paper below and give them a score with comment in Korean.
 
 ###InterviewPaper
 type InterviewItem = {
@@ -48,7 +44,7 @@ type InterviewItem = {
     answer: string;
   }[];
   isCompleted: boolean, // Indicates whether this topic is completed.
-  evaluation: { // This is what you need to update.
+  evaluation: { // This is what you must update.
     comment: string; // As much detail as possible
     score: number; // On a scale of 10
   };
@@ -64,12 +60,42 @@ type InterviewItem = {
       })),
     )}
 
-###Response
+###Response Example:
 Please follow this JSON format for your response
-
 {
-  "interviewPaper": {}
+  "interviewPaper": [{}]
 }
 `.trim();
+  }
+
+  private async getInterviewPaper(interviewId: number) {
+    const interviewPaper = await this.memoryStoreManager.get({
+      type: 'interviewPaper',
+      id: interviewId,
+    });
+    if (interviewPaper.filter((each) => each.isCompleted === false).length) {
+      throw new BadRequestException(`interview is not finished. id=${interviewId}`);
+    }
+    if (interviewPaper[0]?.evaluation?.comment) {
+      return interviewPaper as typeof result.interviewPaper;
+    }
+
+    const result = await this.llmManager.predict<{
+      interviewPaper: {
+        question: string;
+        answer: string;
+        tailQuestions: {
+          question: string;
+          answer: string;
+        }[];
+        isCompleted: boolean;
+        evaluation: {
+          comment: string;
+          score: number;
+        };
+      }[];
+    }>(this.buildPrompt(interviewPaper));
+
+    return result.interviewPaper;
   }
 }

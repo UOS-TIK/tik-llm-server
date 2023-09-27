@@ -404,7 +404,17 @@
       "FinishInterviewView": {
         "type": "object",
         "properties": {
-          "result": {
+          "interviewHistory": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "array",
+            "items": {
+              "x-typia-required": true,
+              "x-typia-optional": false,
+              "type": "string"
+            }
+          },
+          "interviewPaper": {
             "x-typia-required": true,
             "x-typia-optional": false,
             "type": "string"
@@ -412,7 +422,8 @@
         },
         "nullable": false,
         "required": [
-          "result"
+          "interviewHistory",
+          "interviewPaper"
         ],
         "x-typia-jsDocTags": []
       }

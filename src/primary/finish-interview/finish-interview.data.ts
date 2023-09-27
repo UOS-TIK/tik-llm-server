@@ -4,5 +4,17 @@ export interface FinishInterviewData {
 
 export interface FinishInterviewView {
   interviewHistory: string[];
-  interviewPaper: string; // TODO
+
+  interviewPaper: {
+    question: string;
+    answer: string;
+    tailQuestions: {
+      question: string;
+      answer: string;
+    }[];
+    evaluation: {
+      comment: string;
+      score: number;
+    };
+  }[];
 }

@@ -3,5 +3,6 @@ export interface FinishInterviewData {
 }
 
 export interface FinishInterviewView {
-  result: string;
+  interviewHistory: string[];
+  interviewPaper: string; // TODO
 }

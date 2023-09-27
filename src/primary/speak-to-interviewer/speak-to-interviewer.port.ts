@@ -75,13 +75,9 @@ Use the information given below to conduct the interview in Korean
 type InterviewItem = {
   question: string; // The question to be asked by the interviewer.
   answer: string; // The applicant's answer.
-  comment: string; // The interviewer's evaluation on the applicant's answer.(as much detail as possible)
-  score: number; // on a scale of 10 (0 is not rated yet)
   tailQuestions: { // Additional questions that the interviewer wants to ask based on the applicant's answer.
     question: string;
     answer: string;
-    comment: string;
-    score: number;
   }[];
   isCompleted: boolean; // Indicates whether this topic is completed. If there are no more tail questions and you want to move on from the current topic, set it to true.
 };
@@ -98,7 +94,7 @@ ${[...params.interviewHistory.slice(-5), `지원자의 마지막 한말: ${param
 ###Response Example:
 Please follow this JSON format for your response
 {
-  "currInterivewItem": {},
+  "currInterviewItem": {},
   "reply": ""
 }
 

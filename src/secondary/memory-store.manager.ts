@@ -6,15 +6,15 @@ type MemoryStoreItem = {
   interviewPaper: {
     question: string;
     answer: string;
-    comment: string;
-    score: number;
     tailQuestions: {
       question: string;
       answer: string;
-      comment: string;
-      score: number;
     }[];
     isCompleted: boolean;
+    evaluation?: {
+      comment: string;
+      score: number;
+    };
   }[];
 
   interviewHistory: string[];

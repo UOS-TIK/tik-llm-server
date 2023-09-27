@@ -21,8 +21,6 @@ export class InitInterviewPort {
       value: result.questions.map((question) => ({
         question,
         answer: '',
-        comment: '',
-        score: 0,
         isCompleted: false,
         tailQuestions: [],
       })),
@@ -51,6 +49,9 @@ ${params.techStack.join(', ')}
 ###Job Description:
 ${params.jobDescription.join(',')}
 
+###Requirements:
+${params.options.join(',')}
+
 ###Response Example:
 Please follow this JSON format for your response
 {
@@ -60,9 +61,6 @@ Please follow this JSON format for your response
 
 1. keywords: You can select multiple keywords such as Spring Boot, JPA, RDBMS, JavaScript, React.
 2. questions: A list of specific questions you would like to ask.
-
-###Requirements:
-${params.options.join(',')}
 `.trim();
   }
 }

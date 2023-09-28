@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InterviewLock } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
 import { InitInterviewData, InitInterviewView } from './init-interview.data';
 
@@ -9,6 +10,7 @@ export class InitInterviewPort {
     private readonly memoryStoreManager: MemoryStoreManager,
   ) {}
 
+  @InterviewLock(300)
   async execute(data: InitInterviewData): Promise<InitInterviewView> {
     const result = await this.llmManager.predict<{
       keywords: string[];

@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { InterviewLock } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
 import { FinishInterviewData, FinishInterviewView } from './finish-interview.data';
 
@@ -9,23 +10,57 @@ export class FinishInterviewPort {
     private readonly memoryStoreManager: MemoryStoreManager,
   ) {}
 
+  @InterviewLock(300)
   async execute(data: FinishInterviewData): Promise<FinishInterviewView> {
     const interviewHistory = await this.memoryStoreManager.get({
       type: 'interviewHistory',
       id: data.interviewId,
     });
 
-    const interviewPaper = await this.getInterviewPaper(data.interviewId);
+    const interviewPaper = await this.memoryStoreManager.get({
+      type: 'interviewPaper',
+      id: data.interviewId,
+    });
+    if (interviewPaper.filter((each) => each.isCompleted === false).length) {
+      throw new BadRequestException(`interview is not finished. id=${data.interviewId}`);
+    }
+
+    if (interviewPaper[0]?.evaluation?.comment) {
+      return {
+        interviewHistory,
+        interviewPaper: interviewPaper as typeof result.interviewPaper,
+      };
+    }
+
+    const result = await this.llmManager.predict<{
+      interviewPaper: {
+        question: string;
+        answer: string;
+        evaluation: {
+          comment: string;
+          score: number;
+        };
+        tailQuestions: {
+          question: string;
+          answer: string;
+          evaluation: {
+            comment: string;
+            score: number;
+          };
+        }[];
+        isCompleted: boolean;
+      }[];
+    }>(this.buildPrompt(interviewPaper));
 
     await this.memoryStoreManager.set({
       type: 'interviewPaper',
       id: data.interviewId,
-      value: interviewPaper,
+      value: result.interviewPaper,
     });
 
     return {
       interviewHistory,
-      interviewPaper,
+      interviewPaper: result.interviewPaper,
     };
   }
 
@@ -64,60 +99,5 @@ Please follow this JSON format for your response
 - Do not remove tailQuestions
 - Please feedback for all tailQuestions
 `.trim();
-  }
-
-  private async getInterviewPaper(interviewId: number) {
-    const interviewPaper = await this.memoryStoreManager.get({
-      type: 'interviewPaper',
-      id: interviewId,
-    });
-    if (interviewPaper.filter((each) => each.isCompleted === false).length) {
-      throw new BadRequestException(`interview is not finished. id=${interviewId}`);
-    }
-    if (interviewPaper[0]?.evaluation?.comment) {
-      return interviewPaper as typeof result.interviewPaper;
-    }
-
-    const interviewLock = await this.memoryStoreManager.get({
-      type: 'interviewLock',
-      id: interviewId,
-    });
-    if (!interviewLock) {
-      throw new BadRequestException(`interview is being evaluated. id=${interviewId}`);
-    }
-
-    await this.memoryStoreManager.set({
-      type: 'interviewLock',
-      id: interviewId,
-      value: false,
-    });
-
-    const result = await this.llmManager.predict<{
-      interviewPaper: {
-        question: string;
-        answer: string;
-        evaluation: {
-          comment: string;
-          score: number;
-        };
-        tailQuestions: {
-          question: string;
-          answer: string;
-          evaluation: {
-            comment: string;
-            score: number;
-          };
-        }[];
-        isCompleted: boolean;
-      }[];
-    }>(this.buildPrompt(interviewPaper));
-
-    await this.memoryStoreManager.set({
-      type: 'interviewLock',
-      id: interviewId,
-      value: true,
-    });
-
-    return result.interviewPaper;
   }
 }

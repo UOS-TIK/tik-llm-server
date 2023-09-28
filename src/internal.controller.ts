@@ -1,10 +1,22 @@
 import { TypedParam, TypedRoute } from '@nestia/core';
-import { Controller } from '@nestjs/common';
+import { Controller, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { MemoryStoreManager } from './secondary';
 
 @Controller('/_')
 export class InternalController {
   constructor(private readonly memoryStoreManager: MemoryStoreManager) {}
+
+  /**
+   * @internal
+   */
+  @TypedRoute.Get('/demo')
+  async renderHtml(@Res() res: Response) {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(await readFile(join(__dirname, '../index.html')));
+  }
 
   /**
    * @internal

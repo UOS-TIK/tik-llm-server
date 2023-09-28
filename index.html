@@ -38,7 +38,7 @@
         messageEl.value = '로딩중...';
         messageEl.disabled = true;
 
-        const speakRes = await fetch('http://localhost:4000/speak', {
+        const speakRes = await fetch('/speak', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -47,17 +47,14 @@
           }),
         });
 
-        const finishRes = await fetch('http://localhost:4000/finish', {
-          method: 'POST',
+        const internalRes = await fetch(`/_/interview-paper/${interviewIdEl.value}`, {
+          method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            interviewId: +interviewIdEl.value,
-          }),
         });
 
         console.log(`면접관: ${(await speakRes.json()).reply}`);
 
-        interviewPaperEl.value = (await finishRes.json()).result;
+        interviewPaperEl.value = JSON.stringify((await internalRes.json()).interviewPaper, null, 2);
         messageEl.disabled = false;
         messageEl.value = '';
       }

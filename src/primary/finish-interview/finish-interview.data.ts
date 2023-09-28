@@ -8,13 +8,17 @@ export interface FinishInterviewView {
   interviewPaper: {
     question: string;
     answer: string;
-    tailQuestions: {
-      question: string;
-      answer: string;
-    }[];
     evaluation: {
       comment: string;
       score: number;
     };
+    tailQuestions: {
+      question: string;
+      answer: string;
+      evaluation: {
+        comment: string;
+        score: number;
+      };
+    }[];
   }[];
 }

@@ -3,18 +3,24 @@ import { environment } from '@src/environment';
 import { Redis } from 'ioredis';
 
 type MemoryStoreItem = {
+  interviewLock: boolean;
+
   interviewPaper: {
     question: string;
     answer: string;
-    tailQuestions: {
-      question: string;
-      answer: string;
-    }[];
-    isCompleted: boolean;
     evaluation?: {
       comment: string;
       score: number;
     };
+    tailQuestions: {
+      question: string;
+      answer: string;
+      evaluation?: {
+        comment: string;
+        score: number;
+      };
+    }[];
+    isCompleted: boolean;
   }[];
 
   interviewHistory: string[];

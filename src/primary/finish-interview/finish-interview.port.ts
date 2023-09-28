@@ -39,32 +39,30 @@ Look at the interview paper below and give them a score with comment in Korean.
 type InterviewItem = {
   question: string; // The questions asked by the interviewer
   answer: string; // The applicant's answer.
-  tailQuestions: { // Additional questions the interviewer asked.
-    question: string;
-    answer: string;
-  }[];
-  isCompleted: boolean, // Indicates whether this topic is completed.
   evaluation: { // This is what you must update.
     comment: string; // As much detail as possible
     score: number; // On a scale of 10
   };
+  tailQuestions: { // Additional questions the interviewer asked.
+    question: string;
+    answer: string;
+    evaluation: {
+      comment: string;
+      score: number;
+    };
+  }[];
+  isCompleted: boolean, // Indicates whether this topic is completed.
 };
 
-***interviewPaper: ${JSON.stringify(
-      interviewPaper.map((each) => ({
-        ...each,
-        evaluation: {
-          comment: '',
-          score: 0,
-        },
-      })),
-    )}
+***interviewPaper: ${JSON.stringify(interviewPaper)}
 
 ###Response Example:
 Please follow this JSON format for your response
 {
   "interviewPaper": [{}]
 }
+- Do not remove tailQuestions
+- Please feedback for all tailQuestions
 `.trim();
   }
 
@@ -80,21 +78,45 @@ Please follow this JSON format for your response
       return interviewPaper as typeof result.interviewPaper;
     }
 
+    const interviewLock = await this.memoryStoreManager.get({
+      type: 'interviewLock',
+      id: interviewId,
+    });
+    if (!interviewLock) {
+      throw new BadRequestException(`interview is being evaluated. id=${interviewId}`);
+    }
+
+    await this.memoryStoreManager.set({
+      type: 'interviewLock',
+      id: interviewId,
+      value: false,
+    });
+
     const result = await this.llmManager.predict<{
       interviewPaper: {
         question: string;
         answer: string;
-        tailQuestions: {
-          question: string;
-          answer: string;
-        }[];
-        isCompleted: boolean;
         evaluation: {
           comment: string;
           score: number;
         };
+        tailQuestions: {
+          question: string;
+          answer: string;
+          evaluation: {
+            comment: string;
+            score: number;
+          };
+        }[];
+        isCompleted: boolean;
       }[];
     }>(this.buildPrompt(interviewPaper));
+
+    await this.memoryStoreManager.set({
+      type: 'interviewLock',
+      id: interviewId,
+      value: true,
+    });
 
     return result.interviewPaper;
   }

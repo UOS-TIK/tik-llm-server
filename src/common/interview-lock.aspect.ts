@@ -8,7 +8,7 @@ const InterviewLockSymbol = Symbol('InterviewLock');
 export class InterviewLockAspect implements LazyDecorator {
   constructor(private readonly memoryStoreManager: MemoryStoreManager) {}
 
-  wrap({ method, metadata: ttl }: WrapParams<any, number>) {
+  wrap({ method, metadata: ttl }: WrapParams<(...params: any[]) => Promise<unknown>, number>) {
     return async (...params: any[]) => {
       const interviewId = params[0].interviewId;
       if (!interviewId) {
@@ -27,24 +27,22 @@ export class InterviewLockAspect implements LazyDecorator {
           }
         });
 
-      await this.memoryStoreManager.set({
-        type: 'interviewLock',
-        id: interviewId,
-        value: false,
-        ttl,
-      });
-      console.log(ttl);
-
-      const res = await method(...params);
-
-      await this.memoryStoreManager.set({
-        type: 'interviewLock',
-        id: interviewId,
-        value: true,
-        ttl,
-      });
-
-      return res;
+      return this.memoryStoreManager
+        .set({
+          type: 'interviewLock',
+          id: interviewId,
+          value: false,
+          ttl,
+        })
+        .then(() => method(...params))
+        .finally(() =>
+          this.memoryStoreManager.set({
+            type: 'interviewLock',
+            id: interviewId,
+            value: true,
+            ttl,
+          }),
+        );
     };
   }
 }

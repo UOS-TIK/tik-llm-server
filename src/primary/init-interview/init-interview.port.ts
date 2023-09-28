@@ -12,6 +12,18 @@ export class InitInterviewPort {
 
   @InterviewLock(300)
   async execute(data: InitInterviewData): Promise<InitInterviewView> {
+    const interviewPaper = await this.memoryStoreManager
+      .get({
+        type: 'interviewPaper',
+        id: data.interviewId,
+      })
+      .catch(() => null);
+    if (interviewPaper) {
+      return {
+        interviewId: data.interviewId,
+      };
+    }
+
     const result = await this.llmManager.predict<{
       keywords: string[];
       questions: string[];
@@ -19,7 +31,7 @@ export class InitInterviewPort {
 
     await this.memoryStoreManager.set({
       type: 'interviewPaper',
-      id: data.id,
+      id: data.interviewId,
       value: result.questions.map((question) => ({
         question,
         answer: '',
@@ -30,13 +42,15 @@ export class InitInterviewPort {
 
     await this.memoryStoreManager.set({
       type: 'interviewHistory',
-      id: data.id,
+      id: data.interviewId,
       value: [
         '면접관: 안녕하세요. 먼저, 저희 회사에 지원해주셔서 감사드리며 오늘 면접 잘 부탁드리겠습니다.',
       ],
     });
 
-    return { questions: result.questions };
+    return {
+      interviewId: data.interviewId,
+    };
   }
 
   private buildPrompt(params: InitInterviewData) {

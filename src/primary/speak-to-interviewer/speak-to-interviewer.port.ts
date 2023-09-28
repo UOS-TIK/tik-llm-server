@@ -91,7 +91,7 @@ ${JSON.stringify(params.currInterviewItem)}
 ${JSON.stringify(params.nextInterviewItem)}
 
 ###Conversation History:
-${[...params.interviewHistory.slice(-5), `지원자의 마지막 한말: ${params.message}`].join('\n')}
+${[...params.interviewHistory.slice(-5), `지원자(마지막 답변): ${params.message}`].join('\n')}
 
 ###Response Example:
 Please follow this JSON format for your response
@@ -102,6 +102,7 @@ Please follow this JSON format for your response
 
 1. currInterviewItem (required):
 - Update Current Interview Item appropriately, taking into account the applicant's answers and the overall context.
+- Aim to fill in all unanswered questions
 - Conduct an in-depth interview by asking additional tail questions. Please ask two or more follow-up questions.
 - Please ask one clear question at a time.
 - If isCompleted is true and nextInterviewItem is null, conclude the interview and provide closing remarks to inform the applicant.    

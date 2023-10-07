@@ -5,25 +5,29 @@ import { Redis } from 'ioredis';
 type MemoryStoreItem = {
   interviewLock: boolean;
 
+  interviewHistory: string[];
+
   interviewPaper: {
-    question: string;
-    answer: string;
-    evaluation?: {
-      comment: string;
-      score: number;
-    };
-    tailQuestions: {
+    items: {
       question: string;
       answer: string;
       evaluation?: {
         comment: string;
         score: number;
       };
+      tailQuestions: {
+        question: string;
+        answer: string;
+        evaluation?: {
+          comment: string;
+          score: number;
+        };
+      }[];
+      isCompleted: boolean;
     }[];
-    isCompleted: boolean;
-  }[];
-
-  interviewHistory: string[];
+    finalOneLineReview: string;
+    finalScore: number;
+  };
 };
 
 @Injectable()

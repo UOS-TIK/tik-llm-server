@@ -21,11 +21,11 @@ export class FinishInterviewPort {
       type: 'interviewPaper',
       id: data.interviewId,
     });
-    if (interviewPaper.filter((each) => each.isCompleted === false).length) {
+    if (interviewPaper.items.filter((each) => each.isCompleted === false).length) {
       throw new BadRequestException(`interview is not finished. id=${data.interviewId}`);
     }
 
-    if (interviewPaper[0]?.evaluation?.comment) {
+    if (interviewPaper.finalOneLineReview) {
       return {
         interviewHistory,
         interviewPaper: interviewPaper as typeof result.interviewPaper,
@@ -34,22 +34,26 @@ export class FinishInterviewPort {
 
     const result = await this.llmManager.predict<{
       interviewPaper: {
-        question: string;
-        answer: string;
-        evaluation: {
-          comment: string;
-          score: number;
-        };
-        tailQuestions: {
+        items: {
           question: string;
           answer: string;
           evaluation: {
             comment: string;
             score: number;
           };
+          tailQuestions: {
+            question: string;
+            answer: string;
+            evaluation: {
+              comment: string;
+              score: number;
+            };
+          }[];
+          isCompleted: boolean;
         }[];
-        isCompleted: boolean;
-      }[];
+        finalOneLineReview: string;
+        finalScore: number;
+      };
     }>(this.buildPrompt(interviewPaper));
 
     await this.memoryStoreManager.set({
@@ -64,37 +68,45 @@ export class FinishInterviewPort {
     };
   }
 
-  private buildPrompt<T extends { question: string; answer: string }>(interviewPaper: T[]) {
+  private buildPrompt<T extends { finalOneLineReview: string }>(interviewPaper: T) {
     return `
 ###Role
 You are a senior developer evaluating interview applicants' answers.
 Look at the interview paper below and give them a score with comment in Korean.
 
 ###InterviewPaper
-type InterviewItem = {
-  question: string; // The questions asked by the interviewer
-  answer: string; // The applicant's answer.
-  evaluation: { // This is what you must update.
-    comment: string; // As much detail as possible
-    score: number; // On a scale of 10
-  };
-  tailQuestions: { // Additional questions the interviewer asked.
-    question: string;
-    answer: string;
-    evaluation: {
-      comment: string;
-      score: number;
+type InterviewPaper = {
+  items: { // interview items
+    question: string; // The questions asked by the interviewer
+    answer: string; // The applicant's answer.
+    evaluation: { // This is what you must update.
+      comment: string; // As much detail as possible
+      score: number; // Out of 10
     };
-  }[];
-  isCompleted: boolean, // Indicates whether this topic is completed.
-};
+    tailQuestions: { // Additional questions the interviewer asked.
+      question: string;
+      answer: string;
+      evaluation: {
+        comment: string;
+        score: number;
+      };
+    }[];
+    isCompleted: boolean, // Indicates whether this topic is completed.
+  };
+  finalOneLineReview: string; // A comprehensive one-line evaluation.
+  finalScore: number; // Out of 10, an 7 or higher is a passing score.
+}
 
 ***interviewPaper: ${JSON.stringify(interviewPaper)}
 
 ###Response Example:
 Please follow this JSON format for your response
 {
-  "interviewPaper": [{}]
+  "interviewPaper": {
+    "items": [...],
+    "finalOneLineReview": "review about interview",
+    "finalScore": 8, 
+  }
 }
 - Please feedback for all tailQuestions
 - Do not remove tailQuestions!

@@ -32,12 +32,16 @@ export class InitInterviewPort {
     await this.memoryStoreManager.set({
       type: 'interviewPaper',
       id: data.interviewId,
-      value: result.questions.map((question) => ({
-        question,
-        answer: '',
-        isCompleted: false,
-        tailQuestions: [],
-      })),
+      value: {
+        items: result.questions.map((question) => ({
+          question,
+          answer: '',
+          isCompleted: false,
+          tailQuestions: [],
+        })),
+        finalOneLineReview: '',
+        finalScore: 0,
+      },
     });
 
     await this.memoryStoreManager.set({

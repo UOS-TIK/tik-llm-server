@@ -21,9 +21,9 @@ export class SpeakToInterviewerPort {
         throw new BadRequestException(`interview is not initialized. id=${data.interviewId}`);
       });
 
-    const currItemIndex = interviewPaper.findIndex((each) => each.isCompleted === false);
-    const currInterviewItem = interviewPaper[currItemIndex];
-    const nextInterviewItem = interviewPaper[currItemIndex + 1] ?? null;
+    const currItemIndex = interviewPaper.items.findIndex((each) => each.isCompleted === false);
+    const currInterviewItem = interviewPaper.items[currItemIndex];
+    const nextInterviewItem = interviewPaper.items[currItemIndex + 1] ?? null;
     if (!currInterviewItem) {
       throw new BadRequestException(`interview is finished. id=${data.interviewId}`);
     }
@@ -45,7 +45,7 @@ export class SpeakToInterviewerPort {
       }),
     );
 
-    interviewPaper[currItemIndex] = result.currInterviewItem;
+    interviewPaper.items[currItemIndex] = result.currInterviewItem;
 
     await this.memoryStoreManager.set({
       type: 'interviewPaper',

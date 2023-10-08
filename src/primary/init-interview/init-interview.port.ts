@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InterviewLock } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
 import { InitInterviewData, InitInterviewView } from './init-interview.data';
@@ -12,28 +12,42 @@ export class InitInterviewPort {
 
   @InterviewLock(300)
   async execute(data: InitInterviewData): Promise<InitInterviewView> {
-    const interviewPaper = await this.memoryStoreManager
+    await this.memoryStoreManager
       .get({
         type: 'interviewPaper',
         id: data.interviewId,
       })
-      .catch(() => null);
-    if (interviewPaper) {
-      return {
-        interviewId: data.interviewId,
-      };
-    }
+      .catch(() => null)
+      .then((interviewPaper) => {
+        if (interviewPaper) throw new BadRequestException('interview is already started.');
+      });
 
     const result = await this.llmManager.predict<{
       keywords: string[];
       questions: string[];
-    }>(this.buildPrompt(data));
+    }>(
+      this.buildPrompt({
+        techStack: data.techStack,
+        jobDescription: data.jobDescription,
+        questionCount: Math.ceil(data.options.questionCount / 2),
+      }),
+    );
+
+    const csResult = await this.llmManager.predict<{
+      csQuestions: string[];
+    }>(
+      this.buildCsPrompt({
+        questions: result.questions,
+        keywords: result.keywords,
+        csQuestionCount: Math.floor(data.options.questionCount / 2),
+      }),
+    );
 
     await this.memoryStoreManager.set({
       type: 'interviewPaper',
       id: data.interviewId,
       value: {
-        items: result.questions.map((question) => ({
+        items: [...result.questions, ...csResult.csQuestions].map((question) => ({
           question,
           answer: '',
           isCompleted: false,
@@ -57,30 +71,69 @@ export class InitInterviewPort {
     };
   }
 
-  private buildPrompt(params: InitInterviewData) {
+  private buildPrompt(params: {
+    techStack: string[];
+    jobDescription: string[];
+    questionCount: number;
+  }) {
     return `
 ###Role:
 You are a senior developer preparing for a technical interview.
 Please create the interview questionnaire in Korean using the information given below.
 
 ###Applicant's Tech Stack:
-${params.techStack.join(', ')}
+${JSON.stringify(params.techStack)}
 
 ###Job Description:
-${params.jobDescription.join(',')}
-
-###Requirements:
-${params.options.join(',')}
+${JSON.stringify(params.jobDescription)}
 
 ###Response Example:
-Please follow this JSON format for your response
+Please follow this JSON format for your response.
 {
-  "keywords": [""], 
-  "questions": [""]
+  "questions": [""],
+  "keywords": [""]
 }
 
-1. keywords: You can select multiple keywords such as Spring Boot, JPA, RDBMS, JavaScript, React.
-2. questions: A list of specific questions you would like to ask.
+1. questions: 
+- A list of specific questions you want to ask about the applicant's tech stack.
+- Please create ${params.questionCount} questions
+
+2. keywords: 
+- A list of computer science fundamentals keywords that you want to ask.
+- Your options are Algorithm, Database, DataStructure, Network, OS, Java, Javascript, Python.
+- Please select 3 keywords.
+`.trim();
+  }
+
+  private buildCsPrompt(params: {
+    questions: string[];
+    keywords: string[];
+    csQuestionCount: number;
+  }) {
+    // TODO: change keyword to topic
+    const topics = params.keywords;
+
+    return `
+###Role:
+You are a senior developer preparing for a technical interview.
+Please create the additional interview questions in Korean using the information given below.
+
+###Applicant specific questions
+- A list of questions you've prepared considering the applicant's tech stack and yours.
+${JSON.stringify(params.questions)}
+
+###Recommended question topics
+- A list of suggested question topics for computer science fundamentals.
+- Choose the most appropriate topic and create a question about it.
+${JSON.stringify(topics)}
+
+###Response Example:
+Please follow this JSON format for your response.
+{
+  "csQuestions": [""]
+}
+
+- Please create ${params.csQuestionCount} csQuestions.
 `.trim();
   }
 }

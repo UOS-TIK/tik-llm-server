@@ -2,7 +2,9 @@ export interface InitInterviewData {
   interviewId: number;
   techStack: string[];
   jobDescription: string[];
-  options: string[];
+  options: {
+    questionCount: number;
+  };
 }
 
 export interface InitInterviewView {

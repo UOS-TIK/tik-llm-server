@@ -33,17 +33,11 @@ export class SpeakToInterviewerPort {
       id: data.interviewId,
     });
 
-    const result = await this.llmManager.predict<{
-      currInterviewItem: typeof currInterviewItem;
-      reply: string;
-    }>(
-      this.buildPrompt({
-        currInterviewItem,
-        nextInterviewItem,
-        interviewHistory,
-        message: data.message,
-      }),
-    );
+    const result = await this.generateResponse({
+      currInterviewItem,
+      nextInterviewItem,
+      recentConversations: [...interviewHistory.slice(-5), `지원자(마지막 답변): ${data.message}`],
+    });
 
     interviewPaper.items[currItemIndex] = result.currInterviewItem;
 
@@ -62,13 +56,12 @@ export class SpeakToInterviewerPort {
     return { reply: result.reply };
   }
 
-  private buildPrompt<T extends { question: string }>(params: {
+  private async generateResponse<T extends { question: string }>(params: {
     currInterviewItem: T;
     nextInterviewItem: T | null;
-    interviewHistory: string[];
-    message: string;
+    recentConversations: string[];
   }) {
-    return `
+    const prompt = `
 ###Role:
 You are a senior developer conducting a technical interview.
 Use the information given below to conduct the interview in Korean
@@ -90,8 +83,8 @@ ${JSON.stringify(params.currInterviewItem)}
 ###Next Interview Item:
 ${JSON.stringify(params.nextInterviewItem)}
 
-###Conversation History:
-${JSON.stringify([...params.interviewHistory.slice(-5), `지원자(마지막 답변): ${params.message}`])}
+###Recent Conversations:
+${JSON.stringify(params.recentConversations)}
 
 ###Response Example:
 Please follow this JSON format for your response
@@ -113,5 +106,10 @@ Please follow this JSON format for your response
 - Always ask one question at a time!
 - If isCompleted is true and nextInterviewItem is null, conclude the interview and provide closing remarks to inform the applicant.
 `.trim();
+
+    return this.llmManager.predict<{
+      currInterviewItem: typeof params.currInterviewItem;
+      reply: string;
+    }>(prompt);
   }
 }

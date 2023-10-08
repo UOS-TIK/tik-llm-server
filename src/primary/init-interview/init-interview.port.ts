@@ -22,48 +22,21 @@ export class InitInterviewPort {
         if (interviewPaper) throw new BadRequestException('interview is already started.');
       });
 
-    const result = await this.llmManager.predict<{
-      keywords: string[];
-      questions: string[];
-    }>(
-      this.buildPrompt({
-        techStack: data.techStack,
-        jobDescription: data.jobDescription,
-        questionCount: Math.ceil(data.options.questionCount / 2),
-      }),
-    );
-
-    const csResult = await this.llmManager.predict<{
-      csQuestions: string[];
-    }>(
-      this.buildCsPrompt({
-        questions: result.questions,
-        keywords: result.keywords,
-        csQuestionCount: Math.floor(data.options.questionCount / 2),
-      }),
-    );
-
-    await this.memoryStoreManager.set({
-      type: 'interviewPaper',
-      id: data.interviewId,
-      value: {
-        items: [...result.questions, ...csResult.csQuestions].map((question) => ({
-          question,
-          answer: '',
-          isCompleted: false,
-          tailQuestions: [],
-        })),
-        finalOneLineReview: '',
-        finalScore: 0,
-      },
+    const result = await this.generateCustomQuestions({
+      techStack: data.techStack,
+      jobDescription: data.jobDescription,
+      questionCount: Math.ceil(data.options.questionCount / 2),
     });
 
-    await this.memoryStoreManager.set({
-      type: 'interviewHistory',
-      id: data.interviewId,
-      value: [
-        '면접관: 안녕하세요. 먼저, 저희 회사에 지원해주셔서 감사드리며 오늘 면접 잘 부탁드리겠습니다.',
-      ],
+    const csResult = await this.generateCsQuestions({
+      questions: result.questions,
+      keywords: result.keywords,
+      questionCount: Math.floor(data.options.questionCount / 2),
+    });
+
+    await this.saveInterviewPaper({
+      interviewId: data.interviewId,
+      questions: [...result.questions, ...csResult.csQuestions],
     });
 
     return {
@@ -71,12 +44,12 @@ export class InitInterviewPort {
     };
   }
 
-  private buildPrompt(params: {
+  private async generateCustomQuestions(params: {
     techStack: string[];
     jobDescription: string[];
     questionCount: number;
   }) {
-    return `
+    const prompt = `
 ###Role:
 You are a senior developer preparing for a technical interview.
 Please create the interview questionnaire in Korean using the information given below.
@@ -103,26 +76,31 @@ Please follow this JSON format for your response.
 - Your options are Algorithm, Database, DataStructure, Network, OS, Java, Javascript, Python.
 - Please select 3 keywords.
 `.trim();
+
+    return this.llmManager.predict<{
+      keywords: string[];
+      questions: string[];
+    }>(prompt);
   }
 
-  private buildCsPrompt(params: {
+  private async generateCsQuestions(params: {
     questions: string[];
     keywords: string[];
-    csQuestionCount: number;
+    questionCount: number;
   }) {
     // TODO: change keyword to topic
     const topics = params.keywords;
 
-    return `
+    const prompt = `
 ###Role:
 You are a senior developer preparing for a technical interview.
 Please create the additional interview questions in Korean using the information given below.
 
-###Applicant specific questions
+###Applicant specific questions:
 - A list of questions you've prepared considering the applicant's tech stack and yours.
 ${JSON.stringify(params.questions)}
 
-###Recommended question topics
+###Recommended question topics:
 - A list of suggested question topics for computer science fundamentals.
 - Choose the most appropriate topic and create a question about it.
 ${JSON.stringify(topics)}
@@ -133,7 +111,36 @@ Please follow this JSON format for your response.
   "csQuestions": [""]
 }
 
-- Please create ${params.csQuestionCount} csQuestions.
+- Please create ${params.questionCount} csQuestions.
 `.trim();
+
+    return this.llmManager.predict<{
+      csQuestions: string[];
+    }>(prompt);
+  }
+
+  private async saveInterviewPaper(params: { interviewId: number; questions: string[] }) {
+    await this.memoryStoreManager.set({
+      type: 'interviewPaper',
+      id: params.interviewId,
+      value: {
+        items: params.questions.map((question) => ({
+          question,
+          answer: '',
+          isCompleted: false,
+          tailQuestions: [],
+        })),
+        finalOneLineReview: '',
+        finalScore: 0,
+      },
+    });
+
+    return this.memoryStoreManager.set({
+      type: 'interviewHistory',
+      id: params.interviewId,
+      value: [
+        '면접관: 안녕하세요. 먼저, 저희 회사에 지원해주셔서 감사드리며 오늘 면접 잘 부탁드리겠습니다.',
+      ],
+    });
   }
 }

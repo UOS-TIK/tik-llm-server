@@ -28,36 +28,15 @@ export class FinishInterviewPort {
     if (interviewPaper.finalOneLineReview) {
       return {
         interviewHistory,
-        interviewPaper: interviewPaper as typeof updatedInterviewPaper,
+        interviewPaper: interviewPaper as typeof finalInterviewPaper,
       };
     }
 
-    const itemResult = await this.llmManager.predict<{
-      items: {
-        question: string;
-        answer: string;
-        evaluation: {
-          comment: string;
-          score: number;
-        };
-        tailQuestions: {
-          question: string;
-          answer: string;
-          evaluation: {
-            comment: string;
-            score: number;
-          };
-        }[];
-        isCompleted: boolean;
-      }[];
-    }>(this.buildItemPrompt(interviewPaper.items));
+    const itemResult = await this.generateItemEvaluation(interviewPaper.items);
+    // TODO: itemResult를 쓸지 말지 고민... (Promise.allSettled)
+    const finalResult = await this.generateFinalEvaluation(interviewPaper.items);
 
-    const finalResult = await this.llmManager.predict<{
-      finalOneLineReview: string;
-      finalScore: number;
-    }>(this.buildFinalPrompt(interviewPaper.items));
-
-    const updatedInterviewPaper = {
+    const finalInterviewPaper = {
       ...itemResult,
       ...finalResult,
     } satisfies typeof interviewPaper;
@@ -65,17 +44,16 @@ export class FinishInterviewPort {
     await this.memoryStoreManager.set({
       type: 'interviewPaper',
       id: data.interviewId,
-      value: updatedInterviewPaper,
+      value: finalInterviewPaper,
     });
 
     return {
       interviewHistory,
-      interviewPaper: updatedInterviewPaper,
+      interviewPaper: finalInterviewPaper,
     };
   }
-
-  private buildItemPrompt<T extends { question: string }>(interviewItems: T[]) {
-    return `
+  private generateItemEvaluation<T extends { question: string }>(interviewItems: T[]) {
+    const prompt = `
 ###Role
 You are a senior developer evaluating interview applicants' answers.
 Look at the interview items below and give them a score with comment in Korean.
@@ -109,10 +87,30 @@ Please follow this JSON format for your response.
 - Evaluate for all items & item's tailQuestion elements.
 - Don't remove tailQuestion elements.
 `.trim();
+
+    return this.llmManager.predict<{
+      items: {
+        question: string;
+        answer: string;
+        evaluation: {
+          comment: string;
+          score: number;
+        };
+        tailQuestions: {
+          question: string;
+          answer: string;
+          evaluation: {
+            comment: string;
+            score: number;
+          };
+        }[];
+        isCompleted: boolean;
+      }[];
+    }>(prompt);
   }
 
-  private buildFinalPrompt<T extends { question: string }>(interviewItems: T[]) {
-    return `
+  private async generateFinalEvaluation<T extends { question: string }>(interviewItems: T[]) {
+    const prompt = `
 You are a senior developer evaluating interview applicants' answers.
 Look at the interview items below and give final score & review in Korean.
 
@@ -126,5 +124,10 @@ Please follow this JSON format for your response.
   "finalScore": number; // Out of 10, an 7 or higher is a passing score.
 }
 `.trim();
+
+    return this.llmManager.predict<{
+      finalOneLineReview: string;
+      finalScore: number;
+    }>(prompt);
   }
 }

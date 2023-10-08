@@ -3,7 +3,7 @@ import { Controller, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { MemoryStoreManager } from './secondary';
+import { MemoryStoreManager } from '../secondary';
 
 @Controller('/_')
 export class InternalController {

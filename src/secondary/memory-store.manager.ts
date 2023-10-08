@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { environment } from '@src/environment';
+import { environment } from '@src/common';
 import { Redis } from 'ioredis';
 
 type MemoryStoreItem = {

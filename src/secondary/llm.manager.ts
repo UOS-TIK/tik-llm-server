@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { environment } from '@src/environment';
+import { environment } from '@src/common';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PineconeClient } from '@pinecone-database/pinecone';
-import { environment } from '@src/environment';
+import { environment } from '@src/common';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
 

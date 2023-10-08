@@ -1,16 +1,16 @@
 import { TypedBody, TypedRoute } from '@nestia/core';
 import { Controller } from '@nestjs/common';
-import { InitInterviewData, InitInterviewPort, InitInterviewView } from './primary/init-interview';
+import { InitInterviewData, InitInterviewPort, InitInterviewView } from '../primary/init-interview';
 import {
   SpeakToInterviewerData,
   SpeakToInterviewerPort,
   SpeakToInterviewerView,
-} from './primary/speak-to-interviewer';
+} from '../primary/speak-to-interviewer';
 import {
   FinishInterviewData,
   FinishInterviewPort,
   FinishInterviewView,
-} from './primary/finish-interview';
+} from '../primary/finish-interview';
 
 @Controller('/')
 export class AppController {

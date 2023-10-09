@@ -7,8 +7,10 @@ export class AllExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
-    res.json({
-      status: exception.status || 500,
+    const statusCode = exception.status || 500;
+
+    res.status(statusCode).json({
+      statusCode,
       name: exception.name,
       message: exception.message || 'internal server error',
     });

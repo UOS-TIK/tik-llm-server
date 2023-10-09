@@ -5,7 +5,7 @@ const config: INestiaConfig = {
   swagger: {
     output: 'swagger.json',
     security: {
-      bearer: {
+      secret: {
         type: 'apiKey',
         name: 'Authorization',
         in: 'header',

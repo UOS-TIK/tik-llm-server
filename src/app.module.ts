@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AopModule } from '@toss/nestjs-aop';
-import { AllExceptionFilter, InterviewLockAspect } from './common';
+import { AllExceptionFilter, AuthGuard, InterviewLockAspect } from './common';
 import { AppController, InternalController } from './controller';
 import { FinishInterviewPort } from './primary/finish-interview';
 import { InitInterviewPort } from './primary/init-interview';
@@ -25,6 +25,10 @@ import { LlmManager, MemoryStoreManager, VectorStoreManager } from './secondary'
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
   ],
 })

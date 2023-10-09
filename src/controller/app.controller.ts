@@ -25,7 +25,7 @@ export class AppController {
    *
    * @tag Interview
    *
-   * @security bearer
+   * @security secret
    *
    * @param data req body
    *
@@ -41,7 +41,7 @@ export class AppController {
    *
    * @tag Interview
    *
-   * @security bearer
+   * @security secret
    *
    * @param data req body
    *
@@ -59,7 +59,7 @@ export class AppController {
    *
    * @tag Interview
    *
-   * @security bearer
+   * @security secret
    *
    * @param data req body
    *

@@ -6,6 +6,7 @@ dotenv.config({ path: `.env` });
 export const environment = {
   tz: process.env.TZ! as string,
   port: +process.env['PORT']! as number,
+  secret: process.env['SECRET']! as string,
   openai: {
     api: {
       key: process.env['OPENAI_API_KEY']! as string,

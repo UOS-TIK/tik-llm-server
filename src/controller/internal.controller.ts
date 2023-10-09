@@ -13,7 +13,7 @@ export class InternalController {
    * @internal
    */
   @TypedRoute.Get('/demo')
-  async renderHtml(@Res() res: Response) {
+  async renderHtml(@Res() res: Response): Promise<void> {
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(await readFile(join(__dirname, '../index.html')));
   }
@@ -22,7 +22,7 @@ export class InternalController {
    * @internal
    */
   @TypedRoute.Get('/interview-paper/:id')
-  async getInterviewPaper(@TypedParam('id') id: number) {
+  async getInterviewPaper(@TypedParam('id') id: number): Promise<object> {
     return {
       interviewPaper: await this.memoryStoreManager.get({ type: 'interviewPaper', id }),
     };

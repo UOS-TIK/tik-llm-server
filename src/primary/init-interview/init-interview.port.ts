@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InterviewLock } from '@src/common';
-import { LlmManager, MemoryStoreManager } from '@src/secondary';
+import { InterviewLock, util } from '@src/common';
+import { LlmManager, MemoryStoreManager, VectorStoreManager } from '@src/secondary';
 import { InitInterviewData, InitInterviewView } from './init-interview.data';
 
 @Injectable()
@@ -8,6 +8,7 @@ export class InitInterviewPort {
   constructor(
     private readonly llmManager: LlmManager,
     private readonly memoryStoreManager: MemoryStoreManager,
+    private readonly vectorStoreManager: VectorStoreManager,
   ) {}
 
   @InterviewLock(300)
@@ -73,7 +74,7 @@ Please follow this JSON format for your response.
 
 2. keywords: 
 - A list of computer science fundamentals keywords that you want to ask.
-- Your options are Algorithm, Database, DataStructure, Network, OS, Java, Javascript, Python.
+- Your options are Database, DataStructure, Network, OS, Java, Javascript, Python.
 - Please select 3 keywords.
 `.trim();
 
@@ -88,8 +89,9 @@ Please follow this JSON format for your response.
     keywords: string[];
     questionCount: number;
   }) {
-    // TODO: change keyword to topic
-    const topics = params.keywords;
+    const csTopic = await this.vectorStoreManager.findCsTopicByKeywords(
+      util.assert<Parameters<VectorStoreManager['findCsTopicByKeywords']>[0]>(params.keywords),
+    );
 
     const prompt = `
 ###Role:
@@ -103,7 +105,7 @@ ${JSON.stringify(params.questions)}
 ###Recommended question topics:
 - A list of suggested question topics for computer science fundamentals.
 - Choose the most appropriate topic and create a question about it.
-${JSON.stringify(topics)}
+${JSON.stringify(csTopic)}
 
 ###Response Example:
 Please follow this JSON format for your response.

@@ -32,9 +32,11 @@ export class FinishInterviewPort {
       };
     }
 
-    const itemResult = await this.generateItemEvaluation(interviewPaper.items);
-    // TODO: itemResult를 쓸지 말지 고민... (Promise.allSettled)
-    const finalResult = await this.generateFinalEvaluation(interviewPaper.items);
+    // TODO: 순차처리..?
+    const [itemResult, finalResult] = await Promise.all([
+      this.generateItemEvaluation(interviewPaper.items),
+      this.generateFinalEvaluation(interviewPaper.items),
+    ]);
 
     const finalInterviewPaper = {
       ...itemResult,

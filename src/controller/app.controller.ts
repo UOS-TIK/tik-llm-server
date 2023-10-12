@@ -1,6 +1,11 @@
-import { TypedBody, TypedRoute } from '@nestia/core';
+import { TypedBody, TypedException, TypedRoute } from '@nestia/core';
 import { Controller } from '@nestjs/common';
-import { InitInterviewData, InitInterviewPort, InitInterviewView } from '../primary/init-interview';
+import {
+  InitInterviewData,
+  InitInterviewException,
+  InitInterviewPort,
+  InitInterviewView,
+} from '../primary/init-interview';
 import {
   SpeakToInterviewerData,
   SpeakToInterviewerPort,
@@ -31,6 +36,7 @@ export class AppController {
    *
    * @return response type
    */
+  @TypedException<InitInterviewException>('4XX')
   @TypedRoute.Post('/init')
   async initInterview(@TypedBody() data: InitInterviewData): Promise<InitInterviewView> {
     return this.initInterviewPort.execute(data);

@@ -44,6 +44,23 @@
               }
             },
             "x-nestia-encrypted": false
+          },
+          "4XX": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/InterviewLockException"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InitInterviewException"
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "면접 시작 하기",
@@ -335,6 +352,68 @@
         "nullable": false,
         "required": [
           "questionCount"
+        ],
+        "x-typia-jsDocTags": []
+      },
+      "InterviewLockException": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "number"
+          },
+          "name": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string"
+          },
+          "message": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string",
+            "enum": [
+              "invalid interviewId.",
+              "interview is locked."
+            ]
+          }
+        },
+        "nullable": false,
+        "required": [
+          "statusCode",
+          "name",
+          "message"
+        ],
+        "x-typia-jsDocTags": []
+      },
+      "InitInterviewException": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "number"
+          },
+          "name": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string"
+          },
+          "message": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string",
+            "enum": [
+              "interview is already started.",
+              "test exception"
+            ]
+          }
+        },
+        "nullable": false,
+        "required": [
+          "statusCode",
+          "name",
+          "message"
         ],
         "x-typia-jsDocTags": []
       },

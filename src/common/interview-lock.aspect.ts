@@ -1,6 +1,6 @@
-import { BadRequestException } from '@nestjs/common';
 import { MemoryStoreManager } from '@src/secondary';
 import { Aspect, createDecorator, LazyDecorator, WrapParams } from '@toss/nestjs-aop';
+import { AppException } from './all-exception.filter';
 
 const InterviewLockSymbol = Symbol('InterviewLock');
 
@@ -12,7 +12,7 @@ export class InterviewLockAspect implements LazyDecorator {
     return async (...params: any[]) => {
       const interviewId = params[0].interviewId;
       if (!interviewId) {
-        throw new BadRequestException(`invalid interviewId.`);
+        throw new InterviewLockException(400, `invalid interviewId.`);
       }
 
       await this.memoryStoreManager
@@ -23,7 +23,7 @@ export class InterviewLockAspect implements LazyDecorator {
         .catch(() => true)
         .then((interviewLock) => {
           if (!interviewLock) {
-            throw new BadRequestException(`interview is locked. id=${interviewLock}`);
+            throw new InterviewLockException(400, `interview is locked.`);
           }
         });
 
@@ -48,3 +48,7 @@ export class InterviewLockAspect implements LazyDecorator {
 }
 
 export const InterviewLock = (ttl = 300) => createDecorator(InterviewLockSymbol, ttl);
+
+export class InterviewLockException extends AppException<
+  'invalid interviewId.' | 'interview is locked.'
+> {}

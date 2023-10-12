@@ -6,13 +6,10 @@ import { environment } from './environment';
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    if (request.headers.authorization === environment.secret) {
-      return true;
-    }
-    if (request.url.startsWith('/_')) {
-      return true;
+    if (request.headers.authorization !== environment.secret) {
+      return false;
     }
 
-    return false;
+    return true;
   }
 }

@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InterviewLock, util } from '@src/common';
 import { LlmManager, MemoryStoreManager, VectorStoreManager } from '@src/secondary';
-import { InitInterviewData, InitInterviewView } from './init-interview.data';
+import {
+  InitInterviewData,
+  InitInterviewException,
+  InitInterviewView,
+} from './init-interview.data';
 
 @Injectable()
 export class InitInterviewPort {
@@ -20,7 +24,7 @@ export class InitInterviewPort {
       })
       .catch(() => null)
       .then((interviewPaper) => {
-        if (interviewPaper) throw new BadRequestException('interview is already started.');
+        if (interviewPaper) throw new InitInterviewException(404, 'interview is already started.');
       });
 
     const result = await this.generateCustomQuestions({

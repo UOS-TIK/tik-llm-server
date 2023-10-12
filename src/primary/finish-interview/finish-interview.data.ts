@@ -1,3 +1,5 @@
+import { AppException, LockInterviewException } from '@src/common';
+
 export interface FinishInterviewData {
   interviewId: number;
 }
@@ -26,3 +28,7 @@ export interface FinishInterviewView {
     finalScore: number;
   };
 }
+
+export class FinishInterviewException extends AppException<
+  'interview is not finished.' | LockInterviewException['message']
+> {}

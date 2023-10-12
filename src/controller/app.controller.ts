@@ -8,6 +8,7 @@ import {
 } from '../primary/init-interview';
 import {
   SpeakToInterviewerData,
+  SpeakToInterviewerException,
   SpeakToInterviewerPort,
   SpeakToInterviewerView,
 } from '../primary/speak-to-interviewer';
@@ -15,6 +16,7 @@ import {
   FinishInterviewData,
   FinishInterviewPort,
   FinishInterviewView,
+  FinishInterviewException,
 } from '../primary/finish-interview';
 
 @Controller('/')
@@ -53,6 +55,7 @@ export class AppController {
    *
    * @return response type
    */
+  @TypedException<SpeakToInterviewerException>('4XX')
   @TypedRoute.Post('/speak')
   async speakToInterviewer(
     @TypedBody() data: SpeakToInterviewerData,
@@ -71,6 +74,7 @@ export class AppController {
    *
    * @return response type
    */
+  @TypedException<FinishInterviewException>('4XX')
   @TypedRoute.Post('/finish')
   async finishInterview(@TypedBody() data: FinishInterviewData): Promise<FinishInterviewView> {
     return this.finishInterviewPort.execute(data);

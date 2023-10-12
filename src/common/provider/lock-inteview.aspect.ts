@@ -12,7 +12,7 @@ export class LockInterviewAspect implements LazyDecorator {
     return async (...params: any[]) => {
       const interviewId = params[0].interviewId;
       if (!interviewId) {
-        throw new LockInterviewException(400, `invalid interviewId.`);
+        throw new LockInterviewException(400, `invalid interviewId.`, { id: interviewId });
       }
 
       await this.memoryStoreManager
@@ -23,7 +23,7 @@ export class LockInterviewAspect implements LazyDecorator {
         .catch(() => true)
         .then((interviewLock) => {
           if (!interviewLock) {
-            throw new LockInterviewException(400, `interview is locked.`);
+            throw new LockInterviewException(400, `interview is locked.`, { id: interviewId });
           }
         });
 

@@ -2,10 +2,10 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/co
 import { Response } from 'express';
 
 export abstract class AppException<T extends string> {
-  readonly statusCode!: number;
-  readonly name: string;
-  readonly message!: T;
-  readonly additional!: Record<string, any> | undefined;
+  public readonly statusCode!: number;
+  public readonly name: string;
+  public readonly message!: T;
+  private readonly additional!: Record<string, any> | undefined;
   private readonly stack!: string;
 
   constructor(statusCode: number, message: T, additional?: Record<string, any>) {
@@ -18,6 +18,10 @@ export abstract class AppException<T extends string> {
 
   getStack() {
     return this.stack;
+  }
+
+  getLoggingMessage() {
+    return `${this.message} params=${JSON.stringify(this.additional)}`;
   }
 }
 

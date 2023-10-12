@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LockInterview } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
-import { FinishInterviewData, FinishInterviewView } from './finish-interview.data';
+import {
+  FinishInterviewData,
+  FinishInterviewView,
+  FinishInterviewException,
+} from './finish-interview.data';
 
 @Injectable()
 export class FinishInterviewPort {
@@ -22,7 +26,9 @@ export class FinishInterviewPort {
       id: data.interviewId,
     });
     if (interviewPaper.items.filter((each) => each.isCompleted === false).length) {
-      throw new BadRequestException(`interview is not finished. id=${data.interviewId}`);
+      throw new FinishInterviewException(400, 'interview is not finished.', {
+        id: data.interviewId,
+      });
     }
 
     if (interviewPaper.finalOneLineReview) {

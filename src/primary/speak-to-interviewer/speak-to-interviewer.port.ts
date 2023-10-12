@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LockInterview } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
-import { SpeakToInterviewerData, SpeakToInterviewerView } from './speak-to-interviewer.data';
+import {
+  SpeakToInterviewerData,
+  SpeakToInterviewerException,
+  SpeakToInterviewerView,
+} from './speak-to-interviewer.data';
 
 @Injectable()
 export class SpeakToInterviewerPort {
@@ -18,14 +22,18 @@ export class SpeakToInterviewerPort {
         id: data.interviewId,
       })
       .catch(() => {
-        throw new BadRequestException(`interview is not initialized. id=${data.interviewId}`);
+        throw new SpeakToInterviewerException(400, 'interview is not initialized.', {
+          id: data.interviewId,
+        });
       });
 
     const currItemIndex = interviewPaper.items.findIndex((each) => each.isCompleted === false);
     const currInterviewItem = interviewPaper.items[currItemIndex];
     const nextInterviewItem = interviewPaper.items[currItemIndex + 1] ?? null;
     if (!currInterviewItem) {
-      throw new BadRequestException(`interview is finished. id=${data.interviewId}`);
+      throw new SpeakToInterviewerException(400, 'interview is finished.', {
+        id: data.interviewId,
+      });
     }
 
     const interviewHistory = await this.memoryStoreManager.get({

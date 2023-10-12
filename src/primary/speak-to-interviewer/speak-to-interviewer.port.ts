@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InterviewLock } from '@src/common';
+import { LockInterview } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
 import { SpeakToInterviewerData, SpeakToInterviewerView } from './speak-to-interviewer.data';
 
@@ -10,7 +10,7 @@ export class SpeakToInterviewerPort {
     private readonly memoryStoreManager: MemoryStoreManager,
   ) {}
 
-  @InterviewLock(300)
+  @LockInterview(300)
   async execute(data: SpeakToInterviewerData): Promise<SpeakToInterviewerView> {
     const interviewPaper = await this.memoryStoreManager
       .get({

@@ -1,4 +1,4 @@
-import { AppException, InterviewLockException } from '@src/common';
+import { AppException, LockInterviewException } from '@src/common';
 
 export interface InitInterviewData {
   interviewId: number;
@@ -14,5 +14,5 @@ export interface InitInterviewView {
 }
 
 export class InitInterviewException extends AppException<
-  'interview is already started.' | InterviewLockException['message']
+  'interview is already started.' | LockInterviewException['message']
 > {}

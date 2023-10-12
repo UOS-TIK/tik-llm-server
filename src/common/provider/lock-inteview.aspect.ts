@@ -2,17 +2,17 @@ import { MemoryStoreManager } from '@src/secondary';
 import { Aspect, createDecorator, LazyDecorator, WrapParams } from '@toss/nestjs-aop';
 import { AppException } from './all-exception.filter';
 
-const InterviewLockSymbol = Symbol('InterviewLock');
+const LockInterviewSymbol = Symbol('LockInterviewSymbol');
 
-@Aspect(InterviewLockSymbol)
-export class InterviewLockAspect implements LazyDecorator {
+@Aspect(LockInterviewSymbol)
+export class LockInterviewAspect implements LazyDecorator {
   constructor(private readonly memoryStoreManager: MemoryStoreManager) {}
 
   wrap({ method, metadata: ttl }: WrapParams<(...params: any[]) => Promise<unknown>, number>) {
     return async (...params: any[]) => {
       const interviewId = params[0].interviewId;
       if (!interviewId) {
-        throw new InterviewLockException(400, `invalid interviewId.`);
+        throw new LockInterviewException(400, `invalid interviewId.`);
       }
 
       await this.memoryStoreManager
@@ -23,7 +23,7 @@ export class InterviewLockAspect implements LazyDecorator {
         .catch(() => true)
         .then((interviewLock) => {
           if (!interviewLock) {
-            throw new InterviewLockException(400, `interview is locked.`);
+            throw new LockInterviewException(400, `interview is locked.`);
           }
         });
 
@@ -47,8 +47,8 @@ export class InterviewLockAspect implements LazyDecorator {
   }
 }
 
-export const InterviewLock = (ttl = 300) => createDecorator(InterviewLockSymbol, ttl);
+export const LockInterview = (ttl = 300) => createDecorator(LockInterviewSymbol, ttl);
 
-export class InterviewLockException extends AppException<
+export class LockInterviewException extends AppException<
   'invalid interviewId.' | 'interview is locked.'
 > {}

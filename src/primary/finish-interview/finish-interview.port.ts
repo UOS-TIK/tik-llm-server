@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InterviewLock } from '@src/common';
+import { LockInterview } from '@src/common';
 import { LlmManager, MemoryStoreManager } from '@src/secondary';
 import { FinishInterviewData, FinishInterviewView } from './finish-interview.data';
 
@@ -10,7 +10,7 @@ export class FinishInterviewPort {
     private readonly memoryStoreManager: MemoryStoreManager,
   ) {}
 
-  @InterviewLock(300)
+  @LockInterview(300)
   async execute(data: FinishInterviewData): Promise<FinishInterviewView> {
     const interviewHistory = await this.memoryStoreManager.get({
       type: 'interviewHistory',

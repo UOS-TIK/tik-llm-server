@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InterviewLock, util } from '@src/common';
+import { LockInterview, util } from '@src/common';
 import { LlmManager, MemoryStoreManager, VectorStoreManager } from '@src/secondary';
 import {
   InitInterviewData,
@@ -15,7 +15,7 @@ export class InitInterviewPort {
     private readonly vectorStoreManager: VectorStoreManager,
   ) {}
 
-  @InterviewLock(300)
+  @LockInterview(300)
   async execute(data: InitInterviewData): Promise<InitInterviewView> {
     await this.memoryStoreManager
       .get({

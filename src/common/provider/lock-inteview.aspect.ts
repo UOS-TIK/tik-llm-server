@@ -20,9 +20,8 @@ export class LockInterviewAspect implements LazyDecorator {
           type: 'interviewLock',
           id: interviewId,
         })
-        .catch(() => true)
         .then((interviewLock) => {
-          if (!interviewLock) {
+          if (interviewLock === false) {
             throw new LockInterviewException(400, `interview is locked.`, { id: interviewId });
           }
         });

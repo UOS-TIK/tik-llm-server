@@ -16,15 +16,21 @@ export class FinishInterviewPort {
 
   @LockInterview(300)
   async execute(data: FinishInterviewData): Promise<FinishInterviewView> {
-    const interviewHistory = await this.memoryStoreManager.get({
-      type: 'interviewHistory',
-      id: data.interviewId,
-    });
-
-    const interviewPaper = await this.memoryStoreManager.get({
-      type: 'interviewPaper',
-      id: data.interviewId,
-    });
+    const [interviewPaper, interviewHistory] = await Promise.all([
+      this.memoryStoreManager.get({
+        type: 'interviewPaper',
+        id: data.interviewId,
+      }),
+      this.memoryStoreManager.get({
+        type: 'interviewHistory',
+        id: data.interviewId,
+      }),
+    ]);
+    if (!interviewPaper || !interviewHistory) {
+      throw new FinishInterviewException(400, 'interview is not initialized.', {
+        id: data.interviewId,
+      });
+    }
     if (interviewPaper.items.filter((each) => each.isCompleted === false).length) {
       throw new FinishInterviewException(400, 'interview is not finished.', {
         id: data.interviewId,
@@ -38,7 +44,6 @@ export class FinishInterviewPort {
       };
     }
 
-    // TODO: 순차처리..?
     const [itemResult, finalResult] = await Promise.all([
       this.generateItemEvaluation(interviewPaper.items),
       this.generateFinalEvaluation(interviewPaper.items),

@@ -30,5 +30,5 @@ export interface FinishInterviewView {
 }
 
 export class FinishInterviewException extends AppException<
-  'interview is not finished.' | LockInterviewException['message']
+  'interview is not initialized.' | 'interview is not finished.' | LockInterviewException['message']
 > {}

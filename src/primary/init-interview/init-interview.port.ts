@@ -22,7 +22,6 @@ export class InitInterviewPort {
         type: 'interviewPaper',
         id: data.interviewId,
       })
-      .catch(() => null)
       .then((interviewPaper) => {
         if (interviewPaper) throw new InitInterviewException(404, 'interview is already started.');
       });

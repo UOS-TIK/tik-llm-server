@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { environment } from '@src/common';
 import { Redis } from 'ioredis';
 
@@ -41,7 +41,7 @@ export class MemoryStoreManager {
     const key = `${params.type}-${params.id}`;
     const value = await this.redisClient.get(key);
     if (!value) {
-      throw new NotFoundException(`not found redis item. key=${key}`);
+      return null;
     }
 
     return JSON.parse(value) as MemoryStoreItem[T];

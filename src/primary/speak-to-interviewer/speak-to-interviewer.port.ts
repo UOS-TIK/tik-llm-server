@@ -16,16 +16,21 @@ export class SpeakToInterviewerPort {
 
   @LockInterview(300)
   async execute(data: SpeakToInterviewerData): Promise<SpeakToInterviewerView> {
-    const interviewPaper = await this.memoryStoreManager
-      .get({
+    const [interviewPaper, interviewHistory] = await Promise.all([
+      this.memoryStoreManager.get({
         type: 'interviewPaper',
         id: data.interviewId,
-      })
-      .catch(() => {
-        throw new SpeakToInterviewerException(400, 'interview is not initialized.', {
-          id: data.interviewId,
-        });
+      }),
+      this.memoryStoreManager.get({
+        type: 'interviewHistory',
+        id: data.interviewId,
+      }),
+    ]);
+    if (!interviewPaper || !interviewHistory) {
+      throw new SpeakToInterviewerException(400, 'interview is not initialized.', {
+        id: data.interviewId,
       });
+    }
 
     const currItemIndex = interviewPaper.items.findIndex((each) => each.isCompleted === false);
     const currInterviewItem = interviewPaper.items[currItemIndex];
@@ -35,11 +40,6 @@ export class SpeakToInterviewerPort {
         id: data.interviewId,
       });
     }
-
-    const interviewHistory = await this.memoryStoreManager.get({
-      type: 'interviewHistory',
-      id: data.interviewId,
-    });
 
     const result = await this.generateResponse({
       currInterviewItem,

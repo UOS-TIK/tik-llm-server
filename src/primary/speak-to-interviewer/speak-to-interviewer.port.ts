@@ -49,17 +49,18 @@ export class SpeakToInterviewerPort {
 
     interviewPaper.items[currItemIndex] = result.currInterviewItem;
 
-    await this.memoryStoreManager.set({
-      type: 'interviewPaper',
-      id: data.interviewId,
-      value: interviewPaper,
-    });
-
-    await this.memoryStoreManager.set({
-      type: 'interviewHistory',
-      id: data.interviewId,
-      value: [...interviewHistory, `지원자: ${data.message}`, `면접관: ${result.reply}`],
-    });
+    await Promise.all([
+      this.memoryStoreManager.set({
+        type: 'interviewPaper',
+        id: data.interviewId,
+        value: interviewPaper,
+      }),
+      this.memoryStoreManager.set({
+        type: 'interviewHistory',
+        id: data.interviewId,
+        value: [...interviewHistory, `지원자: ${data.message}`, `면접관: ${result.reply}`],
+      }),
+    ]);
 
     return { reply: result.reply };
   }

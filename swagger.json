@@ -246,7 +246,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FinishInterviewViewException"
+                  "$ref": "#/components/schemas/FinishInterviewException"
                 }
               }
             }
@@ -499,7 +499,7 @@
         ],
         "x-typia-jsDocTags": []
       },
-      "FinishInterviewViewException": {
+      "FinishInterviewException": {
         "type": "object",
         "properties": {
           "statusCode": {
@@ -519,6 +519,7 @@
             "enum": [
               "invalid interviewId.",
               "interview is locked.",
+              "interview is not initialized.",
               "interview is not finished."
             ]
           }

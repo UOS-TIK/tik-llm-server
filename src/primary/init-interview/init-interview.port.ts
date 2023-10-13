@@ -125,27 +125,28 @@ Please follow this JSON format for your response.
   }
 
   private async saveInterviewPaper(params: { interviewId: number; questions: string[] }) {
-    await this.memoryStoreManager.set({
-      type: 'interviewPaper',
-      id: params.interviewId,
-      value: {
-        items: params.questions.map((question) => ({
-          question,
-          answer: '',
-          isCompleted: false,
-          tailQuestions: [],
-        })),
-        finalOneLineReview: '',
-        finalScore: 0,
-      },
-    });
-
-    return this.memoryStoreManager.set({
-      type: 'interviewHistory',
-      id: params.interviewId,
-      value: [
-        '면접관: 안녕하세요. 먼저, 저희 회사에 지원해주셔서 감사드리며 오늘 면접 잘 부탁드리겠습니다.',
-      ],
-    });
+    await Promise.all([
+      this.memoryStoreManager.set({
+        type: 'interviewPaper',
+        id: params.interviewId,
+        value: {
+          items: params.questions.map((question) => ({
+            question,
+            answer: '',
+            isCompleted: false,
+            tailQuestions: [],
+          })),
+          finalOneLineReview: '',
+          finalScore: 0,
+        },
+      }),
+      this.memoryStoreManager.set({
+        type: 'interviewHistory',
+        id: params.interviewId,
+        value: [
+          '면접관: 안녕하세요. 먼저, 저희 회사에 지원해주셔서 감사드리며 오늘 면접 잘 부탁드리겠습니다.',
+        ],
+      }),
+    ]);
   }
 }

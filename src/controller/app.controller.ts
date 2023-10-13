@@ -38,7 +38,7 @@ export class AppController {
    *
    * @return response type
    */
-  @TypedException<InitInterviewException>('4XX')
+  @TypedException<InitInterviewException>(400)
   @TypedRoute.Post('/init')
   async initInterview(@TypedBody() data: InitInterviewData): Promise<InitInterviewView> {
     return this.initInterviewPort.execute(data);
@@ -55,7 +55,7 @@ export class AppController {
    *
    * @return response type
    */
-  @TypedException<SpeakToInterviewerException>('4XX')
+  @TypedException<SpeakToInterviewerException>(400)
   @TypedRoute.Post('/speak')
   async speakToInterviewer(
     @TypedBody() data: SpeakToInterviewerData,
@@ -74,7 +74,7 @@ export class AppController {
    *
    * @return response type
    */
-  @TypedException<FinishInterviewException>('4XX')
+  @TypedException<FinishInterviewException>(400)
   @TypedRoute.Post('/finish')
   async finishInterview(@TypedBody() data: FinishInterviewData): Promise<FinishInterviewView> {
     return this.finishInterviewPort.execute(data);

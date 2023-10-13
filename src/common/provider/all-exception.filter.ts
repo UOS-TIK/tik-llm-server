@@ -1,7 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
 import { Response } from 'express';
 
-export abstract class AppException<T extends string> {
+export class AppException<T extends string> {
   public readonly statusCode!: number;
   public readonly name: string;
   public readonly message!: T;
@@ -31,6 +31,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
+    // operational exception
     if (exception instanceof AppException) {
       return res.status(exception.statusCode).json({
         statusCode: exception.statusCode,
@@ -39,6 +40,16 @@ export class AllExceptionFilter implements ExceptionFilter {
       });
     }
 
+    // input validation exception
+    if ((exception as any)?.response?.path) {
+      return res.status(400).json({
+        statusCode: 400,
+        name: 'BadRequestException',
+        message: 'invalid request data.',
+      });
+    }
+
+    // nestjs exception
     if (exception instanceof HttpException) {
       return res.status(exception.getStatus()).json({
         statusCode: exception.getStatus(),
@@ -53,7 +64,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     return res.status(500).json({
       statusCode: 500,
       name: 'InternalServerError',
-      message: 'internal server error',
+      message: 'internal server error.',
     });
   }
 }

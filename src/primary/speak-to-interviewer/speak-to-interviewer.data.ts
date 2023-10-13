@@ -1,7 +1,8 @@
 import { AppException, LockInterviewException } from '@src/common';
+import { tags } from 'typia';
 
 export interface SpeakToInterviewerData {
-  interviewId: number;
+  interviewId: number & tags.ExclusiveMinimum<0>;
   message: string;
 }
 

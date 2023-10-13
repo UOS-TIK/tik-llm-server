@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prepare": "ts-patch install -s",
+    "prepare": "ts-patch install",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "dev": "NODE_ENV=local tsnd --respawn --rs src/main.ts",
     "build": "rimraf dist && tsc -p tsconfig.build.json",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@fxts/core": "^0.21.0",
-    "@nestia/core": "^2.0.4",
+    "@nestia/core": "^2.2.3",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@nestia/e2e": "^0.3.6",
-    "@nestia/sdk": "^2.0.4",
+    "@nestia/sdk": "^2.2.3",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
@@ -47,7 +47,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "29.5.0",
-    "nestia": "^4.5.0",
+    "nestia": "^5.0.1",
     "prettier": "^2.3.2",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",

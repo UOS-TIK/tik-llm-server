@@ -1,7 +1,8 @@
 import { AppException, LockInterviewException } from '@src/common';
+import { tags } from 'typia';
 
 export interface FinishInterviewData {
-  interviewId: number;
+  interviewId: number & tags.ExclusiveMinimum<0>;
 }
 
 export interface FinishInterviewView {

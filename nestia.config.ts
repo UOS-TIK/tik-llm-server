@@ -2,6 +2,8 @@ import { INestiaConfig } from '@nestia/sdk';
 
 const config: INestiaConfig = {
   input: 'src/controller',
+  propagate: true,
+  output: 'src/api',
   swagger: {
     output: 'swagger.json',
     security: {

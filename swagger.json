@@ -45,7 +45,7 @@
             },
             "x-nestia-encrypted": false
           },
-          "4XX": {
+          "400": {
             "description": "",
             "content": {
               "application/json": {
@@ -143,7 +143,7 @@
             },
             "x-nestia-encrypted": false
           },
-          "4XX": {
+          "400": {
             "description": "",
             "content": {
               "application/json": {
@@ -241,7 +241,7 @@
             },
             "x-nestia-encrypted": false
           },
-          "4XX": {
+          "400": {
             "description": "",
             "content": {
               "application/json": {
@@ -318,7 +318,22 @@
           "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "x-typia-typeTags": [
+              {
+                "target": "number",
+                "name": "ExclusiveMinimum<0>",
+                "kind": "exclusiveMinimum",
+                "value": 0,
+                "validate": "0 < $input",
+                "exclusive": [
+                  "exclusiveMinimum",
+                  "minimum"
+                ]
+              }
+            ]
           },
           "techStack": {
             "x-typia-required": true,
@@ -421,7 +436,22 @@
           "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "x-typia-typeTags": [
+              {
+                "target": "number",
+                "name": "ExclusiveMinimum<0>",
+                "kind": "exclusiveMinimum",
+                "value": 0,
+                "validate": "0 < $input",
+                "exclusive": [
+                  "exclusiveMinimum",
+                  "minimum"
+                ]
+              }
+            ]
           },
           "message": {
             "x-typia-required": true,
@@ -490,7 +520,22 @@
           "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "x-typia-typeTags": [
+              {
+                "target": "number",
+                "name": "ExclusiveMinimum<0>",
+                "kind": "exclusiveMinimum",
+                "value": 0,
+                "validate": "0 < $input",
+                "exclusive": [
+                  "exclusiveMinimum",
+                  "minimum"
+                ]
+              }
+            ]
           }
         },
         "nullable": false,

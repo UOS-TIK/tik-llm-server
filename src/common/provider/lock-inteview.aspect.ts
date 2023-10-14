@@ -1,6 +1,6 @@
 import { MemoryStoreManager } from '@src/secondary';
 import { Aspect, createDecorator, LazyDecorator, WrapParams } from '@toss/nestjs-aop';
-import { AppException } from './all-exception.filter';
+import { AppException } from '../exception';
 
 const LockInterviewSymbol = Symbol('LockInterviewSymbol');
 

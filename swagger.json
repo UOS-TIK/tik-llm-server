@@ -308,6 +308,52 @@
         ],
         "x-nestia-method": "POST"
       }
+    },
+    "/_/exceptions": {
+      "get": {
+        "tags": [
+          "Common"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "x-nestia-encrypted": false
+          },
+          "4XX": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonException"
+                }
+              }
+            }
+          }
+        },
+        "summary": "공통 exception 모음",
+        "description": "공통 exception 모음.(4XX, 5XX 전부 포함)",
+        "x-nestia-namespace": "_.exceptions.showCommonExceptions",
+        "x-nestia-jsDocTags": [
+          {
+            "name": "tag",
+            "text": [
+              {
+                "text": "Common",
+                "kind": "text"
+              }
+            ]
+          }
+        ],
+        "x-nestia-method": "GET"
+      }
     }
   },
   "components": {
@@ -729,6 +775,38 @@
         "required": [
           "comment",
           "score"
+        ],
+        "x-typia-jsDocTags": []
+      },
+      "CommonException": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "number"
+          },
+          "name": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string"
+          },
+          "message": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "string",
+            "enum": [
+              "not authorized.",
+              "invalid request data.",
+              "internal server error."
+            ]
+          }
+        },
+        "nullable": false,
+        "required": [
+          "statusCode",
+          "name",
+          "message"
         ],
         "x-typia-jsDocTags": []
       }

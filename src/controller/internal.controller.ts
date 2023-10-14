@@ -22,7 +22,7 @@ export class InternalController {
    * @internal
    */
   @TypedRoute.Get('/interview-paper/:id')
-  async getInterviewPaper(@TypedParam('id') id: number): Promise<object> {
+  async getInterviewPaper(@TypedParam('id') id: number): Promise<Record<string, any>> {
     return {
       interviewPaper: await this.memoryStoreManager.get({ type: 'interviewPaper', id }),
     };

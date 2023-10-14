@@ -1,29 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
 import { Response } from 'express';
-
-export class AppException<T extends string> {
-  public readonly statusCode!: number;
-  public readonly name: string;
-  public readonly message!: T;
-  private readonly additional!: Record<string, any> | undefined;
-  private readonly stack!: string;
-
-  constructor(statusCode: number, message: T, additional?: Record<string, any>) {
-    this.statusCode = statusCode;
-    this.name = this.constructor.name;
-    this.message = message;
-    this.additional = additional || undefined;
-    Error.captureStackTrace(this, this.constructor);
-  }
-
-  getStack() {
-    return this.stack;
-  }
-
-  getLoggingMessage() {
-    return `${this.message} params=${JSON.stringify(this.additional)}`;
-  }
-}
+import { AppException, CommonException } from '../exception';
 
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
@@ -40,15 +17,6 @@ export class AllExceptionFilter implements ExceptionFilter {
       });
     }
 
-    // input validation exception
-    if ((exception as any)?.response?.path) {
-      return res.status(400).json({
-        statusCode: 400,
-        name: 'BadRequestException',
-        message: 'invalid request data.',
-      });
-    }
-
     // nestjs exception
     if (exception instanceof HttpException) {
       return res.status(exception.getStatus()).json({
@@ -58,13 +26,14 @@ export class AllExceptionFilter implements ExceptionFilter {
       });
     }
 
+    // input validation exception
+    if ((exception as any)?.response?.path) {
+      return res.status(400).json(new CommonException(400, 'invalid request data.'));
+    }
+
     // TODO: log unhandled exception.
     console.log(JSON.stringify(exception));
 
-    return res.status(500).json({
-      statusCode: 500,
-      name: 'InternalServerError',
-      message: 'internal server error.',
-    });
+    return res.status(500).json(new CommonException(500, 'internal server error.'));
   }
 }

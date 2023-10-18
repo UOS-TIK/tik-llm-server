@@ -2,7 +2,7 @@ import { AppException, LockInterviewException } from '@src/common';
 import { tags } from 'typia';
 
 export interface InitInterviewData {
-  interviewId: number & tags.ExclusiveMinimum<0>;
+  interviewId: number & tags.Type<'uint32'>;
   techStack: string[];
   jobDescription: string[];
   options: {

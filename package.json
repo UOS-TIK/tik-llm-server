@@ -10,7 +10,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "dev": "NODE_ENV=local tsnd --respawn --rs src/main.ts",
     "build": "rimraf dist && tsc -p tsconfig.build.json",
-    "start": "node dist/main.js",
+    "start:src": "node dist/src/main.js",
+    "start:mock": "node dist/mock/main.js",
     "environment": "dotenv-const -f .env -o src/environment.ts",
     "swagger": "npx nestia swagger"
   },

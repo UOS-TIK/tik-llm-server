@@ -23,7 +23,7 @@ export class InitInterviewPort {
         id: data.interviewId,
       })
       .then((interviewPaper) => {
-        if (interviewPaper) throw new InitInterviewException(404, 'interview is already started.');
+        if (interviewPaper) throw new InitInterviewException(400, 'interview is already started.');
       });
 
     const result = await this.generateCustomQuestions({

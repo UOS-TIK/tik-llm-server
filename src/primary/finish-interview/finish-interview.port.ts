@@ -77,14 +77,14 @@ type InterviewItem = {
     answer: string; // The applicant's answer.
     evaluation: { // This is what you must update.
       comment: string; // As much detail as possible
-      score: number; // Out of 10, an 7 or higher is a passing score.
+      score: number; // Out of 100, an 70 or higher is a passing score.
     };
     tailQuestions: { // Additional questions the interviewer asked. (Don't remove tailQuestion elements!)
       question: string;
       answer: string;
       evaluation: { // This is what you must update.
         comment: string; // As much detail as possible
-        score: number; // Out of 10, an 7 or higher is a passing score.
+        score: number; // Out of 100, an 70 or higher is a passing score.
       };
     }[];
     isCompleted: boolean, // Indicates whether this topic is completed.
@@ -134,7 +134,7 @@ ${JSON.stringify(interviewItems)}
 Please follow this JSON format for your response.
 {
   "finalOneLineReview": string; // A comprehensive one-line evaluation.
-  "finalScore": number; // Out of 10, an 7 or higher is a passing score.
+  "finalScore": number; // Out of 100, an 70 or higher is a passing score.
 }
 `.trim();
 

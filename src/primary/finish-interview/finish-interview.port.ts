@@ -14,7 +14,7 @@ export class FinishInterviewPort {
     private readonly memoryStoreManager: MemoryStoreManager,
   ) {}
 
-  @LockInterview(300)
+  @LockInterview(300, 1)
   async execute(data: FinishInterviewData): Promise<FinishInterviewView> {
     const [interviewPaper, interviewHistory] = await Promise.all([
       this.memoryStoreManager.get({

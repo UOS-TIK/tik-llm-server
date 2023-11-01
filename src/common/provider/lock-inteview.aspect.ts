@@ -8,7 +8,10 @@ const LockInterviewSymbol = Symbol('LockInterviewSymbol');
 export class LockInterviewAspect implements LazyDecorator {
   constructor(private readonly memoryStoreManager: MemoryStoreManager) {}
 
-  wrap({ method, metadata: ttl }: WrapParams<(...params: any[]) => Promise<unknown>, number>) {
+  wrap({
+    method,
+    metadata: [ttl, timeout],
+  }: WrapParams<(...params: any[]) => Promise<unknown>, [number, number]>) {
     return async (...params: any[]) => {
       const interviewId = params[0].interviewId;
       if (!interviewId) {
@@ -26,27 +29,48 @@ export class LockInterviewAspect implements LazyDecorator {
           }
         });
 
-      return this.memoryStoreManager
-        .set({
-          type: 'interviewLock',
-          id: interviewId,
-          value: false,
-          ttl,
-        })
-        .then(() => method(...params))
-        .finally(() =>
-          this.memoryStoreManager.set({
+      return new Promise(async (resolve, reject) => {
+        const timeoutId = timeout
+          ? setTimeout(
+              () =>
+                reject(
+                  new LockInterviewException(400, `interview is locked.`, { id: interviewId }),
+                ),
+              timeout * 1000,
+            )
+          : null;
+
+        return this.memoryStoreManager
+          .set({
             type: 'interviewLock',
             id: interviewId,
-            value: true,
+            value: false,
             ttl,
-          }),
-        );
+          })
+          .then(() => method(...params))
+          .then((result) => {
+            if (timeoutId) clearTimeout(timeoutId);
+            resolve(result);
+          })
+          .catch((error) => {
+            if (timeoutId) clearTimeout(timeoutId);
+            reject(error);
+          })
+          .finally(() => {
+            this.memoryStoreManager.set({
+              type: 'interviewLock',
+              id: interviewId,
+              value: true,
+              ttl,
+            });
+          });
+      });
     };
   }
 }
 
-export const LockInterview = (ttl = 300) => createDecorator(LockInterviewSymbol, ttl);
+export const LockInterview = (ttl = 300, timeout = 0) =>
+  createDecorator(LockInterviewSymbol, [ttl, timeout]);
 
 export class LockInterviewException extends AppException<
   'invalid interviewId.' | 'interview is locked.'

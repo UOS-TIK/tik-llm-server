@@ -364,20 +364,15 @@
           "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
+            "type": "integer",
             "x-typia-typeTags": [
               {
                 "target": "number",
-                "name": "ExclusiveMinimum<0>",
-                "kind": "exclusiveMinimum",
-                "value": 0,
-                "validate": "0 < $input",
-                "exclusive": [
-                  "exclusiveMinimum",
-                  "minimum"
-                ]
+                "name": "Type<\"uint32\">",
+                "kind": "type",
+                "value": "uint32",
+                "validate": "Math.floor($input) === $input && 0 <= $input && $input <= 4294967295",
+                "exclusive": true
               }
             ]
           },
@@ -482,20 +477,15 @@
           "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
+            "type": "integer",
             "x-typia-typeTags": [
               {
                 "target": "number",
-                "name": "ExclusiveMinimum<0>",
-                "kind": "exclusiveMinimum",
-                "value": 0,
-                "validate": "0 < $input",
-                "exclusive": [
-                  "exclusiveMinimum",
-                  "minimum"
-                ]
+                "name": "Type<\"uint32\">",
+                "kind": "type",
+                "value": "uint32",
+                "validate": "Math.floor($input) === $input && 0 <= $input && $input <= 4294967295",
+                "exclusive": true
               }
             ]
           },
@@ -566,20 +556,15 @@
           "interviewId": {
             "x-typia-required": true,
             "x-typia-optional": false,
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
+            "type": "integer",
             "x-typia-typeTags": [
               {
                 "target": "number",
-                "name": "ExclusiveMinimum<0>",
-                "kind": "exclusiveMinimum",
-                "value": 0,
-                "validate": "0 < $input",
-                "exclusive": [
-                  "exclusiveMinimum",
-                  "minimum"
-                ]
+                "name": "Type<\"uint32\">",
+                "kind": "type",
+                "value": "uint32",
+                "validate": "Math.floor($input) === $input && 0 <= $input && $input <= 4294967295",
+                "exclusive": true
               }
             ]
           }

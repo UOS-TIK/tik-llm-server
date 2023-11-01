@@ -29,18 +29,16 @@ export class LockInterviewAspect implements LazyDecorator {
           }
         });
 
-      return new Promise(async (resolve, reject) => {
-        const timeoutId = timeout
-          ? setTimeout(
-              () =>
-                reject(
-                  new LockInterviewException(400, `interview is locked.`, { id: interviewId }),
-                ),
-              timeout * 1000,
-            )
-          : null;
-
-        return this.memoryStoreManager
+      let isBackground = false;
+      return Promise.race([
+        timeout &&
+          new Promise((_, reject) =>
+            setTimeout(() => {
+              isBackground = true;
+              reject(new LockInterviewException(400, `interview is locked.`, { id: interviewId }));
+            }, timeout * 1000),
+          ),
+        this.memoryStoreManager
           .set({
             type: 'interviewLock',
             id: interviewId,
@@ -48,13 +46,12 @@ export class LockInterviewAspect implements LazyDecorator {
             ttl,
           })
           .then(() => method(...params))
-          .then((result) => {
-            if (timeoutId) clearTimeout(timeoutId);
-            resolve(result);
-          })
           .catch((err) => {
-            if (timeoutId) clearTimeout(timeoutId);
-            reject(err);
+            if (isBackground) {
+              console.log(err);
+            } else {
+              throw err;
+            }
           })
           .finally(() => {
             this.memoryStoreManager.set({
@@ -63,8 +60,8 @@ export class LockInterviewAspect implements LazyDecorator {
               value: true,
               ttl,
             });
-          });
-      });
+          }),
+      ]);
     };
   }
 }

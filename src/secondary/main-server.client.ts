@@ -12,9 +12,15 @@ export class MainServerClient {
     responseType: 'json',
   });
 
-  async notifyEvaluationFinished(params: { interviewId: number }) {
-    return this.client.post('/interview/finish', {
-      interviewId: params.interviewId,
-    });
+  async finishInterview(params: { interviewId: number }) {
+    return this.client
+      .post('/interview/finish', {
+        interviewId: params.interviewId,
+      })
+      .catch((err) => {
+        throw new Error(
+          `notifyEvaluationFinished failed. err=${JSON.stringify(err.response.data)}`,
+        );
+      });
   }
 }

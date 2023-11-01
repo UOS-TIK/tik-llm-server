@@ -20,3 +20,11 @@ async function bootstrap() {
 bootstrap().then(() => {
   console.log(`Server is running on ${environment.port}`);
 });
+
+process.on('uncaughtException', (error: Error) => {
+  console.log(`Uncaught Exception: ${error.message}`);
+});
+
+process.on('unhandledRejection', (error: Error) => {
+  console.log(`Unhandled Rejection: ${error.message}`);
+});

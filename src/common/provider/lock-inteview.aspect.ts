@@ -52,9 +52,9 @@ export class LockInterviewAspect implements LazyDecorator {
             if (timeoutId) clearTimeout(timeoutId);
             resolve(result);
           })
-          .catch((error) => {
+          .catch((err) => {
             if (timeoutId) clearTimeout(timeoutId);
-            reject(error);
+            reject(err);
           })
           .finally(() => {
             this.memoryStoreManager.set({

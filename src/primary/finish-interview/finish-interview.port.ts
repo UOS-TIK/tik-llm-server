@@ -61,7 +61,7 @@ export class FinishInterviewPort {
       value: finalInterviewPaper,
     });
 
-    await this.mainServerClient.notifyEvaluationFinished({ interviewId: data.interviewId });
+    this.notifyEvaluationFinished(data.interviewId);
 
     return {
       interviewHistory,
@@ -145,5 +145,9 @@ Please follow this JSON format for your response.
       finalOneLineReview: string;
       finalScore: number;
     }>(prompt);
+  }
+
+  private notifyEvaluationFinished(interviewId: number) {
+    setTimeout(() => this.mainServerClient.finishInterview({ interviewId }), 1000);
   }
 }

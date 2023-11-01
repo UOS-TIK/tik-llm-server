@@ -16,7 +16,12 @@ export class LlmManager {
       return JSON.parse(res) as T;
     } catch (err) {
       console.log(res);
-      return JSON.parse(res + '}') as T;
+
+      return (
+        res.startsWith('###Response')
+          ? JSON.parse(res.split('###Response')[1] ?? '')
+          : JSON.parse(res + '}')
+      ) as T;
     }
   }
 }

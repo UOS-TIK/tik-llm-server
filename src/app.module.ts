@@ -6,7 +6,7 @@ import { AppController, CommonController, InternalController } from './controlle
 import { FinishInterviewPort } from './primary/finish-interview';
 import { InitInterviewPort } from './primary/init-interview';
 import { SpeakToInterviewerPort } from './primary/speak-to-interviewer';
-import { LlmManager, MemoryStoreManager, VectorStoreManager } from './secondary';
+import { LlmManager, MainServerClient, MemoryStoreManager, VectorStoreManager } from './secondary';
 
 @Module({
   imports: [AopModule],
@@ -18,6 +18,7 @@ import { LlmManager, MemoryStoreManager, VectorStoreManager } from './secondary'
     FinishInterviewPort,
     // secondary
     LlmManager,
+    MainServerClient,
     MemoryStoreManager,
     VectorStoreManager,
     // common/providers

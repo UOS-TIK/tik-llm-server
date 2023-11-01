@@ -32,4 +32,9 @@ export const environment = {
     host: process.env['REDIS_HOST']! as string,
     port: +process.env['REDIS_PORT']! as number,
   },
+  main: {
+    server: {
+      url: process.env['MAIN_SERVER_URL']! as string,
+    },
+  },
 };

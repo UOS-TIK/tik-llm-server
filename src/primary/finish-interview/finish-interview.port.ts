@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LockInterview } from '@src/common';
-import { LlmManager, MemoryStoreManager } from '@src/secondary';
+import { LlmManager, MainServerClient, MemoryStoreManager } from '@src/secondary';
 import {
   FinishInterviewData,
   FinishInterviewView,
@@ -12,6 +12,7 @@ export class FinishInterviewPort {
   constructor(
     private readonly llmManager: LlmManager,
     private readonly memoryStoreManager: MemoryStoreManager,
+    private readonly mainServerClient: MainServerClient,
   ) {}
 
   @LockInterview(300, 1)
@@ -59,6 +60,8 @@ export class FinishInterviewPort {
       id: data.interviewId,
       value: finalInterviewPaper,
     });
+
+    await this.mainServerClient.notifyEvaluationFinished({ interviewId: data.interviewId });
 
     return {
       interviewHistory,

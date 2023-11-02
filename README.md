@@ -1,5 +1,10 @@
 # README
 
-![architecture](image.png)
+### 아키텍처
 
-[API 문서 링크](http://3.34.125.52:4000/docs)
+![architecture](./docs/image.png)
+
+### 기타
+
+[Example](./docs/EXAMPLE.md)
+[Swagger Document](http://3.34.125.52:4000/docs)

@@ -30,38 +30,42 @@ export class LockInterviewAspect implements LazyDecorator {
         });
 
       let isBackground = false;
-      return Promise.race([
-        timeout &&
-          new Promise((_, reject) =>
-            setTimeout(() => {
-              isBackground = true;
-              reject(new LockInterviewException(400, `interview is locked.`, { id: interviewId }));
-            }, timeout * 1000),
-          ),
-        this.memoryStoreManager
-          .set({
-            type: 'interviewLock',
-            id: interviewId,
-            value: false,
-            ttl,
-          })
-          .then(() => method(...params))
-          .catch((err) => {
-            if (isBackground) {
-              console.log(err);
-            } else {
-              throw err;
-            }
-          })
-          .finally(() => {
-            this.memoryStoreManager.set({
+      return Promise.race(
+        [
+          timeout &&
+            new Promise((_, reject) =>
+              setTimeout(() => {
+                isBackground = true;
+                reject(
+                  new LockInterviewException(400, `interview is locked.`, { id: interviewId }),
+                );
+              }, timeout * 1000),
+            ),
+          this.memoryStoreManager
+            .set({
               type: 'interviewLock',
               id: interviewId,
-              value: true,
+              value: false,
               ttl,
-            });
-          }),
-      ]);
+            })
+            .then(() => method(...params))
+            .catch((err) => {
+              if (isBackground) {
+                console.log(err);
+              } else {
+                throw err;
+              }
+            })
+            .finally(() => {
+              this.memoryStoreManager.set({
+                type: 'interviewLock',
+                id: interviewId,
+                value: true,
+                ttl,
+              });
+            }),
+        ].filter((it) => !!it),
+      );
     };
   }
 }

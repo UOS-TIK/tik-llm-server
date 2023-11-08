@@ -6,7 +6,7 @@ import { ChatOpenAI } from 'langchain/chat_models/openai';
 export class LlmManager {
   private llm = new ChatOpenAI({
     openAIApiKey: environment.openai.api.key,
-    modelName: 'gpt-4',
+    modelName: 'gpt-4-1106-preview',
     temperature: 0.1,
   });
 
@@ -15,13 +15,17 @@ export class LlmManager {
     try {
       return JSON.parse(res) as T;
     } catch (err) {
+      if (res.startsWith('###Response')) {
+        return JSON.parse(res.split('###Response')[1] ?? '');
+      }
+
+      if (res.startsWith('```json')) {
+        return JSON.parse(res.split('```json')[1]?.split('```')[0] ?? '');
+      }
+
       console.log(res);
 
-      return (
-        res.startsWith('###Response')
-          ? JSON.parse(res.split('###Response')[1] ?? '')
-          : JSON.parse(res + '}')
-      ) as T;
+      return JSON.parse(res + '}');
     }
   }
 }

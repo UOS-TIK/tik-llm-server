@@ -7,6 +7,9 @@ import { CommonException } from '../exception';
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
+    if (process.env['NODE_ENV'] === 'local') {
+      return true;
+    }
     if (request.headers.authorization !== environment.secret) {
       throw new CommonException(401, 'not authorized.');
     }

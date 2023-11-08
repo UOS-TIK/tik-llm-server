@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LockInterview, util } from '@src/common';
+import { LockInterview } from '@src/common';
 import { LlmManager, MemoryStoreManager, VectorStoreManager } from '@src/secondary';
 import {
   InitInterviewData,
@@ -92,9 +92,8 @@ Please follow this JSON format for your response.
     keywords: string[];
     questionCount: number;
   }) {
-    const csTopic = await this.vectorStoreManager.findCsTopicByKeywords(
-      util.assert<Parameters<VectorStoreManager['findCsTopicByKeywords']>[0]>(params.keywords),
-    );
+    // TODO: remove as any
+    const csTopic = await this.vectorStoreManager.findCsTopicByKeywords(params.keywords as any);
 
     const prompt = `
 ###Role:

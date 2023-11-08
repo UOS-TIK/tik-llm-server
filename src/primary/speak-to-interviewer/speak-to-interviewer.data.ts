@@ -8,6 +8,7 @@ export interface SpeakToInterviewerData {
 
 export interface SpeakToInterviewerView {
   reply: string;
+  isFinished: boolean;
 }
 
 export class SpeakToInterviewerException extends AppException<

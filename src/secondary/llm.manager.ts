@@ -10,7 +10,7 @@ export class LlmManager {
     temperature: 0.1,
   });
 
-  async predict<T extends object>(prompt: string) {
+  async predict<T extends object>(prompt: string): Promise<T> {
     const res = await this.llm.predict(prompt);
     try {
       return JSON.parse(res) as T;

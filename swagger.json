@@ -542,11 +542,17 @@
             "x-typia-required": true,
             "x-typia-optional": false,
             "type": "string"
+          },
+          "isFinished": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "boolean"
           }
         },
         "nullable": false,
         "required": [
-          "reply"
+          "reply",
+          "isFinished"
         ],
         "x-typia-jsDocTags": []
       },

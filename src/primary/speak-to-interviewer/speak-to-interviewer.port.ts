@@ -62,7 +62,10 @@ export class SpeakToInterviewerPort {
       }),
     ]);
 
-    return { reply: result.reply };
+    return {
+      reply: result.reply,
+      isFinished: !nextInterviewItem && result.currInterviewItem.isCompleted,
+    };
   }
 
   private async generateResponse<T extends { question: string }>(params: {

@@ -6,7 +6,9 @@ export interface InitInterviewData {
   techStack: string[];
   jobDescription: string[];
   options: {
-    questionCount: number;
+    resumeQuestion: number;
+    jdQuestion: number;
+    csQuestion: number;
   };
 }
 

@@ -412,7 +412,17 @@
       "__type": {
         "type": "object",
         "properties": {
-          "questionCount": {
+          "resumeQuestion": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "number"
+          },
+          "jdQuestion": {
+            "x-typia-required": true,
+            "x-typia-optional": false,
+            "type": "number"
+          },
+          "csQuestion": {
             "x-typia-required": true,
             "x-typia-optional": false,
             "type": "number"
@@ -420,7 +430,9 @@
         },
         "nullable": false,
         "required": [
-          "questionCount"
+          "resumeQuestion",
+          "jdQuestion",
+          "csQuestion"
         ],
         "x-typia-jsDocTags": []
       },

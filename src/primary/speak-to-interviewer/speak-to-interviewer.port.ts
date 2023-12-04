@@ -82,7 +82,7 @@ Use the information given below to conduct the interview in Korean
 type InterviewItem = {
   question: string; // The question to be asked by the interviewer.
   answer: string; // The applicant's answer.
-  tailQuestions: { // Additional questions that the interviewer wants to ask based on the applicant's answer.
+  tailQuestions: { // Additional questions that the interviewer wants to ask based on the applicant's answer. only rootQuestion has tailQuestion. tailQuestion doesn't have tailQuestion. 
     question: string;
     answer: string;
   }[];
@@ -108,7 +108,7 @@ Please follow this JSON format for your response
 1. currInterviewItem (required):
 - Update Current Interview Item appropriately, taking into account the applicant's answers and the overall context.
 - Aim to fill answer in all unanswered questions. (Make sure no questions go unanswered!)
-- Conduct an in-depth interview by asking additional tail questions. Please ask 2~10 follow-up questions.
+- Conduct an in-depth interview by asking additional tail questions. Please ask 2~3 follow-up questions.
 - Please ask one clear question at a time
 - If isCompleted is true and nextInterviewItem is null, conclude the interview and provide closing remarks to inform the applicant.    
 

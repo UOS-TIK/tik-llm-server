@@ -8,6 +8,9 @@ export class AllExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
+    // TODO: log unhandled exception.
+    console.log(JSON.stringify(exception));
+
     // operational exception
     if (exception instanceof AppException) {
       return res.status(exception.statusCode).json({
@@ -30,9 +33,6 @@ export class AllExceptionFilter implements ExceptionFilter {
     if ((exception as any)?.response?.path) {
       return res.status(400).json(new CommonException(400, 'invalid request data.'));
     }
-
-    // TODO: log unhandled exception.
-    console.log(JSON.stringify(exception));
 
     return res.status(500).json(new CommonException(500, 'internal server error.'));
   }

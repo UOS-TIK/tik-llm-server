@@ -13,7 +13,6 @@ export class LockInterviewAspect implements LazyDecorator {
     metadata: [ttl, timeout],
   }: WrapParams<(...params: any[]) => Promise<unknown>, [number, number]>) {
     return async (...params: any[]) => {
-      console.log(`[Request] name=${method.name}, params=${JSON.stringify(params)}`);
       const interviewId = params[0].interviewId;
       if (!interviewId) {
         throw new LockInterviewException(400, `invalid interviewId.`, { id: interviewId });

@@ -48,7 +48,7 @@ export default function InitPage() {
 
     if (res.interviewId) {
       toast({ title: '면접 준비가 완료되었습니다.', status: 'success' });
-      setTimeout(() => router.push(`/speak/${res.interviewId}`), 1000);
+      setTimeout(() => router.push(`/speak/${res.interviewId}`), 3000);
     } else {
       toast({ title: res.message || '에러가 발생했습니다', status: 'error' });
     }

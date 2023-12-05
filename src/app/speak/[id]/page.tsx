@@ -1,11 +1,11 @@
 'use client';
 import { useToast, VStack, Heading, HStack, Button, Text } from '@chakra-ui/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useRef, useCallback } from 'react';
 
 export default function SpeakPage() {
   const router = useRouter();
-  const params = useSearchParams();
+  const params = useParams();
   const toast = useToast();
 
   const [status, setStatus] = useState<'ready' | 'recording' | 'processing'>('ready');
@@ -54,7 +54,6 @@ export default function SpeakPage() {
     const newMessages = [...messages, `지원자: ${sttRes.text}`];
 
     setMessages(newMessages);
-
     const llmRes: { reply: string; isFinished: boolean } = await fetch(
       'http://localhost:4000/speak',
       {
@@ -64,7 +63,7 @@ export default function SpeakPage() {
           Authorization: process.env.NEXT_PUBLIC_LLM_API_KEY || '',
         },
         body: JSON.stringify({
-          interviewId: parseInt(params.get('id') || '1'),
+          interviewId: parseInt(params.id as string),
           message: sttRes.text,
         }),
       }
@@ -95,7 +94,7 @@ export default function SpeakPage() {
 
     if (llmRes.isFinished) {
       toast({ title: '면접이 종료되었습니다.', status: 'success' });
-      setTimeout(() => router.push(`/finish/${params.get('id')}`), 1000);
+      setTimeout(() => router.push(`/finish/${params.id}`), 3000);
     }
   }, [messages, params, toast, router]);
 

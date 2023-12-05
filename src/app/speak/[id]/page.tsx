@@ -64,7 +64,7 @@ export default function SpeakPage() {
           Authorization: process.env.NEXT_PUBLIC_LLM_API_KEY || '',
         },
         body: JSON.stringify({
-          interviewId: parseInt(params.get('id') || '10000'),
+          interviewId: parseInt(params.get('id') || '1'),
           message: sttRes.text,
         }),
       }
@@ -95,7 +95,7 @@ export default function SpeakPage() {
 
     if (llmRes.isFinished) {
       toast({ title: '면접이 종료되었습니다.', status: 'success' });
-      setTimeout(() => router.push(`/result/${params.get('id')}`), 1000);
+      setTimeout(() => router.push(`/finish/${params.get('id')}`), 1000);
     }
   }, [messages, params, toast, router]);
 

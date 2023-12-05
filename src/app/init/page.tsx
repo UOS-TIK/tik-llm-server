@@ -4,7 +4,6 @@ import {
   VStack,
   Heading,
   Textarea,
-  HStack,
   Button,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -12,12 +11,11 @@ import {
   NumberInputField,
   NumberInputStepper,
 } from '@chakra-ui/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 export default function InitPage() {
   const router = useRouter();
-  const params = useSearchParams();
   const toast = useToast();
 
   const [resume, setResume] = useState('');

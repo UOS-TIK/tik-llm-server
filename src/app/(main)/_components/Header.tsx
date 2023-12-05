@@ -1,3 +1,4 @@
+'use client';
 import { Button, HStack, Heading, Text, Textarea, VStack, useToast } from '@chakra-ui/react';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';

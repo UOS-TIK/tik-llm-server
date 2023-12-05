@@ -1,5 +1,6 @@
-import { VStack } from '@chakra-ui/react';
+'use client';
 import React from 'react';
+import { VStack } from '@chakra-ui/react';
 
 export function PageContainer({ children }: { children: React.ReactNode }) {
   return (

@@ -1,4 +1,5 @@
 'use client';
+import { fetchLlm } from '@/client/fetch-llm';
 import {
   useToast,
   VStack,
@@ -26,25 +27,16 @@ export default function InitPage() {
   const handleOnInitClick = async () => {
     setIsLoading(true);
 
-    const res = await fetch('http://localhost:4000/init', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: process.env.NEXT_PUBLIC_LLM_API_KEY || '',
+    const res = await fetchLlm('/init', {
+      interviewId: Math.floor(Math.random() * (1000000 - 100000 + 1)) + 100000,
+      techStack: [resume],
+      jobDescription: [jd],
+      options: {
+        resumeQuestion: Math.round(questionCount / 3),
+        jdQuestion: Math.floor(questionCount / 3),
+        csQuestion: Math.ceil(questionCount / 3),
       },
-      body: JSON.stringify({
-        interviewId: Math.floor(Math.random() * (1000000 - 100000 + 1)) + 100000,
-        techStack: [resume],
-        jobDescription: [jd],
-        options: {
-          resumeQuestion: Math.round(questionCount / 3),
-          jdQuestion: Math.floor(questionCount / 3),
-          csQuestion: Math.ceil(questionCount / 3),
-        },
-      }),
-    })
-      .then((data) => data.json())
-      .finally(() => setIsLoading(false));
+    }).finally(() => setIsLoading(false));
 
     if (res.interviewId) {
       toast({ title: '면접 준비가 완료되었습니다.', status: 'success' });

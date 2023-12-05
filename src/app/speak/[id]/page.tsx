@@ -1,4 +1,5 @@
 'use client';
+import { fetchLlm } from '@/client/fetch-llm';
 import { useToast, VStack, Heading, HStack, Button, Text } from '@chakra-ui/react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useRef, useCallback } from 'react';
@@ -54,20 +55,11 @@ export default function SpeakPage() {
     const newMessages = [...messages, `지원자: ${sttRes.text}`];
 
     setMessages(newMessages);
-    const llmRes: { reply: string; isFinished: boolean } = await fetch(
-      'http://localhost:4000/speak',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: process.env.NEXT_PUBLIC_LLM_API_KEY || '',
-        },
-        body: JSON.stringify({
-          interviewId: parseInt(params.id as string),
-          message: sttRes.text,
-        }),
-      }
-    ).then((data) => data.json());
+
+    const llmRes: { reply: string; isFinished: boolean } = await fetchLlm('/speak', {
+      interviewId: parseInt(params.id as string),
+      message: sttRes.text,
+    });
 
     const ttsRes = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',

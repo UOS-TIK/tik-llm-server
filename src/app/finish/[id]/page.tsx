@@ -1,4 +1,5 @@
 'use client';
+import { fetchLlm } from '@/client/fetch-llm';
 import { Heading, Textarea, VStack } from '@chakra-ui/react';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -28,24 +29,15 @@ export default function FinishPage() {
   }>();
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetch('http://localhost:4000/finish', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: process.env.NEXT_PUBLIC_LLM_API_KEY || '',
-        },
-        body: JSON.stringify({
-          interviewId: parseInt(params.id as string),
-        }),
-      })
-        .then((data) => data.json())
-        .then((json) => {
-          if (json.interviewPaper) {
-            setInterviewPaper(json.interviewPaper);
-            clearInterval(interval);
-          }
-        });
+    const interval = setInterval(async () => {
+      const data = await fetchLlm('/finish', {
+        interviewId: parseInt(params.id as string),
+      });
+
+      if (data.interviewPaper) {
+        setInterviewPaper(data.interviewPaper);
+        clearInterval(interval);
+      }
     }, 5000);
 
     return () => clearInterval(interval);

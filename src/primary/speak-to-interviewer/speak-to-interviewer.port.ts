@@ -44,7 +44,10 @@ export class SpeakToInterviewerPort {
     const result = await this.generateResponse({
       currInterviewItem,
       nextInterviewItem,
-      recentConversations: [...interviewHistory.slice(-5), `지원자(마지막 답변): ${data.message}`],
+      recentConversations: [
+        ...interviewHistory.slice(-3),
+        `applicant(latest answer): ${data.message}`,
+      ],
     });
 
     interviewPaper.items[currItemIndex] = result.currInterviewItem;
@@ -58,7 +61,11 @@ export class SpeakToInterviewerPort {
       this.memoryStoreManager.set({
         type: 'interviewHistory',
         id: data.interviewId,
-        value: [...interviewHistory, `지원자: ${data.message}`, `면접관: ${result.reply}`],
+        value: [
+          ...interviewHistory,
+          `applicant: ${data.message}`,
+          `you(interviewer): ${result.reply}`,
+        ],
       }),
     ]);
 
@@ -80,13 +87,13 @@ Use the information given below to conduct the interview in Korean
 
 ###Interview Item:
 type InterviewItem = {
-  question: string; // The question to be asked by the interviewer.
-  answer: string; // The applicant's answer.
-  tailQuestions: { // Additional questions that the interviewer wants to ask based on the applicant's answer. only rootQuestion has tailQuestion. tailQuestion doesn't have tailQuestion. 
+  question: string; // The question which you have to ask.
+  answer: string; // The applicant's answer. '' means unawnswered yet.
+  tailQuestions: { // Additional questions that you wants to ask. only rootQuestion has tailQuestion. tailQuestion doesn't have tailQuestion. 
     question: string;
     answer: string;
   }[];
-  isCompleted: boolean; // Indicates whether this topic is completed. If there are no more tail questions and you want to move on from the current topic, set it to true.
+  isCompleted: boolean; // Indicates whether this topic is completed. 
 };
 
 ###Current Interview Item:
@@ -101,27 +108,25 @@ ${JSON.stringify(params.recentConversations)}
 ###Response Example:
 Please follow this JSON format for your response
 {
-  "currInterviewItem": {},
-  "reply": ""
+  "currInterviewItem": {}, // update question's answer based on conversation. and create or update tailQuestion if you want.
+  "reply": "" // message which you say next. use it to ask question to applicant or conclude interview.
 }
 
-1. currInterviewItem (required):
-- Update Current Interview Item appropriately, taking into account the applicant's answers and the overall context.
-- Aim to fill answer in all unanswered questions. (Make sure no questions go unanswered!)
-- Conduct an in-depth interview by asking additional tail questions. Please ask 2~3 follow-up questions.
-- Please ask one clear question at a time
-- If isCompleted is true and nextInterviewItem is null, conclude the interview and provide closing remarks to inform the applicant.    
+Let's make response step by step
+### currInterviewItem
+1. Update answer(include tailQuestion) property based on Recent Conversations. If applicant doesn't answer yet, do not update answer. Instead ask question to get answer using reply property 
+2. Create new tailQuestion based on Recent Conversations. (If you want to ask new Qusetion, However tailQuestion's length must be 1~2)
+3. Set isCompleted to true. If you've done to update all answers.
 
-2. reply (required):
-- Provide an appropriate response based on what was most recently said by the applicant in order to maintain a natural flow of conversation.
-- Ask additional tail questions related to the current interview item or complete current interview item and ask a new question related to 'next interview item'.
-- Always ask one question at a time!
-- If isCompleted is true and nextInterviewItem is null, conclude the interview and provide closing remarks to inform the applicant.
+### reply
+1. Select Question you want to ask include tailQuestion. and If you set isCompleted(in currInterviewItem) as true, then use Next Interview Item
+2. If you set isCompleted(in currInterviewItem) as true and nextInterviewItem is null, conclude the interview. Must provide closing remarks to inform the applicant.
+3. Ask question you select in step1 However, If isCompleted is true and nextInterviewItem is null, Must provide closing remarks to inform the applicant. (Do not ask new question!)
 `.trim();
 
     return this.llmManager.predict<{
       currInterviewItem: typeof params.currInterviewItem;
       reply: string;
-    }>(prompt);
+    }>(prompt, { version: 3 });
   }
 }

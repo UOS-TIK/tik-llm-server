@@ -4,14 +4,28 @@ import { ChatOpenAI } from 'langchain/chat_models/openai';
 
 @Injectable()
 export class LlmManager {
-  private llm = new ChatOpenAI({
+  private llmV3 = new ChatOpenAI({
     openAIApiKey: environment.openai.api.key,
-    modelName: 'gpt-4-1106-preview',
+    // modelName: 'gpt-4',
+    // modelName: 'gpt-4-1106-preview',
+    modelName: 'gpt-3.5-turbo-1106',
     temperature: 0.1,
   });
 
-  async predict<T extends object>(prompt: string): Promise<T> {
-    const res = await this.llm.predict(prompt);
+  private llmV4 = new ChatOpenAI({
+    openAIApiKey: environment.openai.api.key,
+    modelName: 'gpt-4-1106-preview',
+    // modelName: 'gpt-3.5-turbo-1106',
+    temperature: 0.1,
+  });
+
+  async predict<T extends object>(
+    prompt: string,
+    options: { version: 3 | 4 } = { version: 4 },
+  ): Promise<T> {
+    const res =
+      options.version === 3 ? await this.llmV3.predict(prompt) : await this.llmV4.predict(prompt);
+
     try {
       return JSON.parse(res) as T;
     } catch (err) {

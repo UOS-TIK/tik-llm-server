@@ -32,7 +32,6 @@ export class SpeakToInterviewerPort {
       });
     }
 
-    const recentConversations = [...interviewHistory.slice(-2), `지원자: ${data.message}`];
     const currItemIndex = interviewPaper.items.findIndex((each) => each.isCompleted === false);
     const currInterviewItem = interviewPaper.items[currItemIndex];
     const nextInterviewItem = interviewPaper.items[currItemIndex + 1] ?? null;
@@ -42,28 +41,27 @@ export class SpeakToInterviewerPort {
       });
     }
 
-    const { reply } = await this.generateReply({
-      currInterviewItem,
-      nextInterviewItem,
-      recentConversations,
-    });
-
-    recentConversations.push(`면접관: ${reply}`);
+    const recentConversations = [
+      ...interviewHistory.slice(-3),
+      `지원자(마지막 답변): ${data.message}`,
+    ];
 
     const { currInterviewItem: updatedCurrInterviewItem } = await this.generateCurrInterviewItem({
       currInterviewItem,
-      nextInterviewItem,
       recentConversations,
     });
 
-    if (updatedCurrInterviewItem.tailQuestions.length < 2) {
-      const { tailQuestion } = await this.generateTailQuestion({
-        currQuestion: updatedCurrInterviewItem.question,
-        recentConversations,
-      });
+    const currentTopic = !updatedCurrInterviewItem.answer
+      ? updatedCurrInterviewItem.question
+      : updatedCurrInterviewItem.tailQuestions.find((each) => !each.answer)?.question ||
+        nextInterviewItem?.question;
 
-      updatedCurrInterviewItem.tailQuestions.push({ question: tailQuestion, answer: '' });
-    }
+    const { reply } = await this.generateReply({
+      currentTopic,
+      recentConversations,
+    });
+
+    updatedCurrInterviewItem.isCompleted = currentTopic === nextInterviewItem?.question;
 
     interviewPaper.items[currItemIndex] = updatedCurrInterviewItem;
 
@@ -82,155 +80,91 @@ export class SpeakToInterviewerPort {
 
     return {
       reply,
-      isFinished: !nextInterviewItem && updatedCurrInterviewItem.isCompleted,
+      isFinished: !currentTopic,
     };
-  }
-
-  private async generateReply<T extends { question: string }>(params: {
-    currInterviewItem: T;
-    nextInterviewItem: T | null;
-    recentConversations: string[];
-  }) {
-    const prompt = `
-### 역할:
-당신은 기술 면접을 진행하는 시니어 개발자입니다.
-아래 정보를 사용하여 한국어로 지원자에게 적절하게 답변하세요.
-
-### 면접 항목:
-면접 항목에는 다음과 같은 속성이 있습니다:
-- question: string; // 면접관이 물어봐야 할 질문입니다.
-- answer: string; // 지원자의 답변입니다. ''는 아직 답변하지 않은 상태를 의미합니다.
-- tailQuestions: { // rootQuestion에 대한 후속 질문들입니다. 이들은 rootQuestion과 대화 맥락에 관련된 추가 질문이며, 별도의 주제로 분기되지 않습니다.
-    question: string;
-    answer: string;
-}[];
-- isCompleted: boolean; // 해당 주제에 대한 논의가 완료되었는지를 나타냅니다.
-
-### 현재 면접 항목:
-${JSON.stringify(params.currInterviewItem)}
-
-### 다음 면접 항목:
-${JSON.stringify(params.nextInterviewItem)}
-
-### 최근 대화:
-${JSON.stringify(params.recentConversations)}
-
-### 응답 주의 사항
-- tailQuestion을 포함해서, answer === ''인 항목에 대해 질문하세요.
-- answer === ''인 항목이 없다면, *다음 면접 항목*에 대해 질문하세요.
-- 더 이상 추가로 질문할 항목이 없고, *다음 면접 항목* === null이라면 면접 종료를 안내하세요.
-- 반드시 같은 질문을 반복하지 마세요!
-- *현재 면접 항목* 혹은 *다음 면접 항목*에 없는 질문을 하지마세요!
-
-### 응답 예시:
-응답은 다음 JSON 형식을 따라야 합니다.
-{
-  "reply": "" // 당신이 다음에 할 말입니다.
-}
-
-### Notice
-- tailQuestion을 포함해서, answer === ''인 항목에 대해 질문하세요.
-- answer === ''인 항목이 없다면, *다음 면접 항목*에 대해 질문하세요.
-- 더 이상 추가로 질문할 항목이 없고, *다음 면접 항목* === null이라면 면접 종료를 안내하세요.
-- 반드시 같은 질문을 반복하지 마세요!
-- *현재 면접 항목* 혹은 *다음 면접 항목*에 없는 질문을 하지마세요!
-`.trim();
-
-    return this.llmManager.predict<{
-      reply: string;
-    }>(prompt, { version: 4 });
   }
 
   private async generateCurrInterviewItem<T extends { question: string }>(params: {
     currInterviewItem: T;
-    nextInterviewItem: T | null;
     recentConversations: string[];
   }) {
     const prompt = `
-### 역할:
-당신은 기술 면접을 진행하는 시니어 개발자입니다.
-최근 대화를 기반으로 현재 면접 항목의 answer과 isCompleted를 업데이트히세요.
+### Role:
+You are a senior developer conducting a technical interview.(=interviewer)
+Update the content of your current interview item based on a recent conversation.
 
-### 면접 항목:
-면접 항목에는 다음과 같은 속성이 있습니다:
-- question: string; // 면접관이 해야할 질문입니다.
-- answer: string; // 지원자의 답변입니다. ''는 지원자가 아직 답변하지 않은 상태를 의미합니다.
-- tailQuestions: { // rootQuestion에 대한 후속 질문들입니다. 이들은 rootQuestion과 대화 맥락에 관련된 추가 질문이며, 별도의 주제로 분기되지 않습니다.
+### Interview Item:
+An interview item has the following properties
+- question: string; // A question for the interviewer to ask.
+- answer: string; // The candidate's answer. '' means the candidate hasn't answered yet.
+- tailQuestions: { // Follow-up questions to the rootQuestion. tailQuestion doesn't have tailQuestion.
     question: string; 
     answer: string;
-}[];
-- isCompleted: boolean; // 해당 주제에 대한 논의가 완료되었는지를 나타냅니다. 
+  }[];
 
-
-### 현재 면접 항목:
+### Current interview item:
 ${JSON.stringify(params.currInterviewItem)}
 
-### 다음 면접 항목:
-${JSON.stringify(params.nextInterviewItem)}
-
-### 최근 대화:
+### Recent conversations:
 ${JSON.stringify(params.recentConversations)}
 
-### 응답 주의 사항
-1. answer
-- tailQuestion 하위의 answer도 포함합니다.
-- 최근 대화를 참고하여 지원자가 한 말을 작성하세요.
-- 최근 대화에서 지원자의 답변을 찾을수 없다면 ''을 리턴하세요.
-
-2. isCompleted
-- 최근 대화를 참고하여 현재 면접 항목에 대한 논의가 완료되었다면 true로 설정하세요
-- 최근 대화를 참고하여 면접관이 면접 종료를 안내했다면 true로 설정하세요.
-- 그 밖에는 false로 설정하세요.
-
-### 응답 예시:
-응답은 다음 JSON 형식을 따라야 합니다.
+### Example response:
+The response should follow the following JSON format.
 {
-  "currInterviewItem": {} // 반드시 유효한 JSON 포맷을 지켜주세요
+  "currInterviewItem": {} // Update the content of your current interview item based on a recent conversation.
 }
 
-### Notice
-1. answer
-- tailQuestion 하위의 answer도 포함합니다.
-- 최근 대화를 참고하여 지원자가 한 말을 작성하세요.
-- 최근 대화에서 지원자의 답변을 찾을수 없다면 ''을 리턴하세요.
+### Steps for Response
+1. answer (include tailQuestion's answer)
+- Refer to recent conversations, Edit answer to the applicable questions.
+- If you can't find the applicant's answer in recent conversations, return ''.
 
-2. isCompleted
-- 최근 대화를 참고하여 현재 면접 항목에 대한 논의가 완료되었다면 true로 설정하세요
-- 최근 대화를 참고하여 면접관이 면접 종료를 안내했다면 true로 설정하세요.
-- 그 밖에는 false로 설정하세요.
+2. tailQuestion
+- Add follow-up questions based on the rootQuesetion of the current interview item and the applicant's answer.
+- tailQuestion doesn't have tailQuestion.
+- If you don't find a root question's answer, Don't create a new tailQuestion.
+- Make sure you don't have more than 2 follow-up questions.
 `.trim();
 
     return this.llmManager.predict<{
       currInterviewItem: typeof params.currInterviewItem;
-    }>(prompt, { version: 3 });
+    }>(prompt, { version: 4 });
   }
 
-  private async generateTailQuestion(params: {
-    currQuestion: string;
+  private async generateReply(params: {
+    currentTopic: string | undefined;
     recentConversations: string[];
   }) {
+    if (!params.currentTopic) {
+      return {
+        reply: '네 답변 감사합니다. 그럼 이상으로 면접을 종료하겠습니다. 감사합니다.',
+      };
+    }
+
     const prompt = `
-### 역할:
-당신은 기술 면접을 진행하는 시니어 개발자입니다.
-아래 정보를 사용하여 한국어로 적절한 후속 질문을 생성해주세요.
+### Role:
+You are a senior developer conducting a technical interview.(=interviewer)
+Take a look at the current interview items and recent conversations below and respond appropriately to the candidate in Korean.
 
-### 현재 대화 주제:
-${JSON.stringify(params.currQuestion)}
+### Questions to ask:
+${params.currentTopic}
 
-### 최근 대화:
+### Recent conversations:
 ${JSON.stringify(params.recentConversations)}
 
-### 응답 예시:
-응답은 다음 JSON 형식을 따라야 합니다.
+### Example response:
+The response should follow the following JSON format.
 {
-  "tailQuestion": "" 
+  "reply": "" // What you're going to say next. Proceed with the interview by asking about the questions you're going to ask.
 }
 
-- 현재 대화 주제와 지원자의 답변을 기반으로 후속 질문을 생성해주세요.
+### A word of caution
+- Don't repeat same question.
+- If the applicant can't answer or answers incorrectly, move on to the next question.
 `.trim();
 
     return this.llmManager.predict<{
-      tailQuestion: string;
+      reply: string;
     }>(prompt, { version: 3 });
   }
 }

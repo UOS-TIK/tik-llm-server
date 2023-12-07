@@ -29,11 +29,11 @@ export class LlmManager {
     try {
       return JSON.parse(res) as T;
     } catch (err) {
-      if (res.startsWith('###Response')) {
+      if (res.includes('###Response')) {
         return JSON.parse(res.split('###Response')[1] ?? '');
       }
 
-      if (res.startsWith('```json')) {
+      if (res.includes('```json')) {
         return JSON.parse(res.split('```json')[1]?.split('```')[0] ?? '');
       }
 

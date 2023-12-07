@@ -9,6 +9,8 @@ import {
 
 @Injectable()
 export class SpeakToInterviewerPort {
+  private tailQuestionCount = 2;
+
   constructor(
     private readonly llmManager: LlmManager,
     private readonly memoryStoreManager: MemoryStoreManager,
@@ -42,7 +44,7 @@ export class SpeakToInterviewerPort {
     }
 
     const recentConversations = [
-      ...interviewHistory.slice(-3),
+      ...interviewHistory.slice(-5),
       `지원자(마지막 답변): ${data.message}`,
     ];
 
@@ -51,10 +53,25 @@ export class SpeakToInterviewerPort {
       recentConversations,
     });
 
-    const currentTopic = !updatedCurrInterviewItem.answer
-      ? updatedCurrInterviewItem.question
-      : updatedCurrInterviewItem.tailQuestions.find((each) => !each.answer)?.question ||
-        nextInterviewItem?.question;
+    let currentTopic: string | undefined = undefined;
+    if (
+      updatedCurrInterviewItem.answer &&
+      updatedCurrInterviewItem.tailQuestions.length < this.tailQuestionCount &&
+      updatedCurrInterviewItem.tailQuestions.every((each) => each.answer)
+    ) {
+      const { tailQuestion } = await this.generateTailQuestion({
+        recentConversations,
+      });
+
+      updatedCurrInterviewItem.tailQuestions.push({ question: tailQuestion, answer: '' });
+
+      currentTopic = tailQuestion;
+    } else {
+      currentTopic = !updatedCurrInterviewItem.answer
+        ? updatedCurrInterviewItem.question
+        : updatedCurrInterviewItem.tailQuestions.find((each) => !each.answer)?.question ||
+          nextInterviewItem?.question;
+    }
 
     const { reply } = await this.generateReply({
       currentTopic,
@@ -91,7 +108,7 @@ export class SpeakToInterviewerPort {
     const prompt = `
 ### Role:
 You are a senior developer conducting a technical interview.(=interviewer)
-Update the content of your current interview item based on a recent conversation.
+Update the content of current interview item's answer based on a recent conversation.
 
 ### Interview Item:
 An interview item has the following properties
@@ -111,24 +128,44 @@ ${JSON.stringify(params.recentConversations)}
 ### Example response:
 The response should follow the following JSON format.
 {
-  "currInterviewItem": {} // Update the content of your current interview item based on a recent conversation.
+  "currInterviewItem": {} // Update the current interview item's answer based on a recent conversation.
 }
 
-### Steps for Response
-1. answer (include tailQuestion's answer)
-- Refer to recent conversations, Edit answer to the applicable questions.
-- If you can't find the applicant's answer in recent conversations, return ''.
-
-2. tailQuestion
-- Add follow-up questions based on the rootQuesetion of the current interview item and the applicant's answer.
-- tailQuestion doesn't have tailQuestion.
-- If you don't find a root question's answer, Don't create a new tailQuestion.
-- Make sure you don't have more than 2 follow-up questions.
+### Steps for response
+- Before update answer check if answer is proper, if it is not then answer should be ''. (which means not answered)
+- View your recent conversations to see if the applicant answered your unanswered question.
+- If they did, edit the answer to that question.
+- If the applicant says they don't know, record their answer.
+- If you can't find proper answer, don't edit answer.
+- Before update answer check if answer is answer for question, if it is not Do not update answer!!
+    ex) ask something, check previous question etc...  (something unrelated)
+        like that "말씀하신 서버사이드렌더링이 SSR이죠?" or "다시 질문 부탁드립니다." => it is not proper answer, but a follow-up question to your previos question.
 `.trim();
 
-    return this.llmManager.predict<{
-      currInterviewItem: typeof params.currInterviewItem;
-    }>(prompt, { version: 4 });
+    return this.llmManager.predict<{ currInterviewItem: T }>(prompt, { version: 4 });
+  }
+
+  private generateTailQuestion(params: { recentConversations: string[] }) {
+    const prompt = `
+### Role:
+You are a senior developer conducting a technical interview.(=interviewer)
+Create a new tail question in Korean based on recent conversations
+
+### Recent converations:
+${JSON.stringify(params.recentConversations)}
+
+### Example response:
+The response should follow the following JSON format.
+{
+  "tailQuestion": string
+}
+
+### Steps for response
+- Consider the answer to the rootQuestion and tailQuestion to generate appropriate additional questions.
+- Max tailQuestion count is ${this.tailQuestionCount} consider it.
+`.trim();
+
+    return this.llmManager.predict<{ tailQuestion: string }>(prompt, { version: 3 });
   }
 
   private async generateReply(params: {
@@ -144,7 +181,7 @@ The response should follow the following JSON format.
     const prompt = `
 ### Role:
 You are a senior developer conducting a technical interview.(=interviewer)
-Take a look at the current interview items and recent conversations below and respond appropriately to the candidate in Korean.
+respond appropriately to the applicant in Korean using below information.
 
 ### Questions to ask:
 ${params.currentTopic}
@@ -158,13 +195,11 @@ The response should follow the following JSON format.
   "reply": "" // What you're going to say next. Proceed with the interview by asking about the questions you're going to ask.
 }
 
-### A word of caution
-- Don't repeat same question.
-- If the applicant can't answer or answers incorrectly, move on to the next question.
+### Steps for response
+- Exclude a reaction to the applicant's answer in reply like "네 ~에 대한 답변 잘 들었습니다."
+- Generate reply using information above to progress interview.
 `.trim();
 
-    return this.llmManager.predict<{
-      reply: string;
-    }>(prompt, { version: 3 });
+    return this.llmManager.predict<{ reply: string }>(prompt, { version: 3 });
   }
 }

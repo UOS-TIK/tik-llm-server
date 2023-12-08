@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class SpeakToInterviewerPort {
-  private tailQuestionCount = 2;
+  private tailQuestionCount = 0;
 
   constructor(
     private readonly llmManager: LlmManager,

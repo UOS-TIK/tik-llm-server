@@ -30,6 +30,17 @@ export class InitInterviewPort {
       resume: data.techStack,
       questionCount: data.options.resumeQuestion,
     });
+    // TODO 배포시엔 로직 지우기
+    if (!data.options.jdQuestion && !data.options.csQuestion) {
+      await this.saveInterviewPaper({
+        interviewId: data.interviewId,
+        questions: resumeResult.questions,
+      });
+
+      return {
+        interviewId: data.interviewId,
+      };
+    }
 
     const jdResult = await this.generateJdQuestions({
       resumeQuestions: resumeResult.questions,

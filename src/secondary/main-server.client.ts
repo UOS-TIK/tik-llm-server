@@ -8,6 +8,7 @@ export class MainServerClient {
     baseURL: environment.main.server.url,
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MTIzNCIsImF1dGgiOiJST0xFX01FTUJFUiIsInVzZXJJZCI6MTMsImlhdCI6MTcwMjA1MDQ1MCwiZXhwIjoxNzAzODAzNDgzfQ.McHdkeg3p9pn-wbEax3cI_8fXho5GUSNR96C7IaCzmI`,
     },
     responseType: 'json',
   });

@@ -45,6 +45,8 @@ export class FinishInterviewPort {
       };
     }
 
+    interviewPaper.items = await this.refactorItems(interviewPaper.items, interviewHistory);
+
     const [itemResult, finalResult] = await Promise.all([
       this.generateItemEvaluation(interviewPaper.items),
       this.generateFinalEvaluation(interviewPaper.items),
@@ -69,7 +71,62 @@ export class FinishInterviewPort {
     };
   }
 
-  private generateItemEvaluation<T extends { question: string }>(interviewItems: T[]) {
+  private async refactorItems<T extends { question: string }>(
+    interviewItems: T[],
+    interviewHistory: string[],
+  ) {
+    const prompt = `
+###Role
+I've organized the interview items based on the interview conversation history(web developer interview),
+But I may have made mistakes (chronological order, reversed interviewer and applicant, contain typos etc...), 
+Refactor my interview items below based on interview converstaion history using Korean.
+
+###InterviewItem
+It is kind of summary of interview. interview item has the following properties.
+
+type InterviewItem = {
+  question: string; // The questions asked by the interviewer.
+  answer: string; // The applicant's answer.
+  tailQuestions: { // Additional questions the interviewer asked.
+    question: string;
+    answer: string;
+  }[];
+  isCompleted: boolean, // Indicates whether this topic is completed.
+}
+
+###My Inteview Items:
+ ${JSON.stringify(interviewItems)}
+
+ ###Converstaion history: 
+${JSON.stringify(interviewHistory)}
+
+###Response Example:
+Please follow this JSON format for your response.
+{
+  "items": [{}] // refactored items based on full converstaion history
+}
+
+###Steps for Response
+- Fix any typos in the applicant's answers.
+- If there are any mismatches between the conversation history and the interview items, please correct them.
+`.trim();
+
+    return this.llmManager
+      .predict<{
+        items: {
+          question: string;
+          answer: string;
+          tailQuestions: {
+            question: string;
+            answer: string;
+          }[];
+          isCompleted: boolean;
+        }[];
+      }>(prompt)
+      .then((res) => res.items);
+  }
+
+  private async generateItemEvaluation<T extends { question: string }>(interviewItems: T[]) {
     const prompt = `
 ###Role
 You are a senior developer evaluating interview applicants' answers.

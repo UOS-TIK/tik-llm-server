@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class SpeakToInterviewerPort {
-  private tailQuestionCount = 0;
+  private tailQuestionCount = 2;
 
   constructor(
     private readonly llmManager: LlmManager,
@@ -113,7 +113,7 @@ Update the content of current interview item's answer based on a recent conversa
 ### Interview Item:
 An interview item has the following properties
 - question: string; // A question for the interviewer to ask.
-- answer: string; // The candidate's answer. '' means the candidate hasn't answered yet.
+- answer: string; // The applicant's answer. '' means the applicant hasn't answered yet.
 - tailQuestions: { // Follow-up questions to the rootQuestion. tailQuestion doesn't have tailQuestion.
     question: string; 
     answer: string;
@@ -142,7 +142,7 @@ The response should follow the following JSON format.
         like that "말씀하신 서버사이드렌더링이 SSR이죠?" or "다시 질문 부탁드립니다." => it is not proper answer, but a follow-up question to your previos question.
 `.trim();
 
-    return this.llmManager.predict<{ currInterviewItem: T }>(prompt, { version: 4 });
+    return this.llmManager.predict<{ currInterviewItem: T }>(prompt, { version: 3 });
   }
 
   private generateTailQuestion(params: { recentConversations: string[] }) {
@@ -162,7 +162,7 @@ The response should follow the following JSON format.
 
 ### Steps for response
 - Consider the answer to the rootQuestion and tailQuestion to generate appropriate additional questions.
-- Max tailQuestion count is ${this.tailQuestionCount} consider it.
+- Do not ask same question again which interviewer asked before.
 `.trim();
 
     return this.llmManager.predict<{ tailQuestion: string }>(prompt, { version: 3 });
@@ -198,6 +198,7 @@ The response should follow the following JSON format.
 ### Steps for response
 - Exclude a reaction to the applicant's answer in reply like "네 ~에 대한 답변 잘 들었습니다."
 - Generate reply using information above to progress interview.
+- Do not repeat same reply.
 `.trim();
 
     return this.llmManager.predict<{ reply: string }>(prompt, { version: 3 });

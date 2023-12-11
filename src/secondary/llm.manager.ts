@@ -38,7 +38,6 @@ export class LlmManager {
         return JSON.parse(res.split('```json')[1]?.split('```')[0] ?? '');
       }
 
-      console.log('Invalid json format!\n', res);
       const jsonStr = await this.llmV3.predict(`
 ### Task
 I give you invalid JSON string.
@@ -55,8 +54,9 @@ response follow this format.
 
 - text is refactored valid JSON string.
 `);
+      console.log('Invalid json format!\n', jsonStr);
 
-      return JSON.parse(jsonStr);
+      return JSON.parse(jsonStr).text;
     }
   }
 }

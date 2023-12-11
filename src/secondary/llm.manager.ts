@@ -23,8 +23,9 @@ export class LlmManager {
     prompt: string,
     options: { version: 3 | 4 } = { version: 4 },
   ): Promise<T> {
-    const res =
-      options.version === 3 ? await this.llmV3.predict(prompt) : await this.llmV4.predict(prompt);
+    const res = (
+      options.version === 3 ? await this.llmV3.predict(prompt) : await this.llmV4.predict(prompt)
+    ).replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
 
     try {
       return JSON.parse(res) as T;
@@ -37,7 +38,7 @@ export class LlmManager {
         return JSON.parse(res.split('```json')[1]?.split('```')[0] ?? '');
       }
 
-      console.log(res);
+      console.log('Invalid json format!\n', res);
 
       return JSON.parse(res + '}');
     }

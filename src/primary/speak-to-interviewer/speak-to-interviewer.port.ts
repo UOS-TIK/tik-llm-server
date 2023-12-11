@@ -42,6 +42,10 @@ export class SpeakToInterviewerPort {
         id: data.interviewId,
       });
     }
+    // TODO: 지우기
+    if (data.message === '지금부터 면접을 시작하겠습니다.') {
+      data.message = '네 잘 부탁드립니다.';
+    }
 
     const recentConversations = [
       ...interviewHistory.slice(-5),
@@ -60,6 +64,7 @@ export class SpeakToInterviewerPort {
       updatedCurrInterviewItem.tailQuestions.every((each) => each.answer)
     ) {
       const { tailQuestion } = await this.generateTailQuestion({
+        currInterviewItem: updatedCurrInterviewItem,
         recentConversations,
       });
 
@@ -113,7 +118,7 @@ Update the content of current interview item's answer based on a recent conversa
 ### Interview Item:
 An interview item has the following properties
 - question: string; // A question for the interviewer to ask.
-- answer: string; // The applicant's answer. '' means the applicant hasn't answered yet.
+- answer: string; // The applicant's answer. "" means the applicant hasn't answered yet or invalid.
 - tailQuestions: { // Follow-up questions to the rootQuestion. tailQuestion doesn't have tailQuestion.
     question: string; 
     answer: string;
@@ -132,24 +137,79 @@ The response should follow the following JSON format.
 }
 
 ### Steps for response
-- Before update answer check if answer is proper, if it is not then answer should be ''. (which means not answered)
+- Do not create new tailQuestion item. just update answer of tailQuestion.
+- Before update answer check if answer is valid, if it is not then answer should be "".
 - View your recent conversations to see if the applicant answered your unanswered question.
 - If they did, edit the answer to that question.
 - If the applicant says they don't know, record their answer.
-- If you can't find proper answer, don't edit answer.
-- Before update answer check if answer is answer for question, if it is not Do not update answer!!
-    ex) ask something, check previous question etc...  (something unrelated)
-        like that "말씀하신 서버사이드렌더링이 SSR이죠?" or "다시 질문 부탁드립니다." => it is not proper answer, but a follow-up question to your previos question.
+- If you can't find proper answer, answer should be "".
+- If the applicant asks to confirm the interviewer's question, answer should be "". (**this is very important!)
+    example1) 
+      Recent conversations:
+      [
+        ...
+        "면접관: gRPC를 사용하여 서버 간 통신 효율을 높이는 방안을 말씀해주셨는데, 이러한 성능 최적화 기법을 적용할 때 네트워크 통신 외에 발생할 수 있는 다른 잠재적인 문제에 대해 어떻게 대응할 수 있는지 예를 들어 설명해주실 수 있나요?",
+        "지원자: 다른 잠재적인 문제가 생각이 잘 나지 않습니다. 혹시 어떤 문제가 있는지 알려주실 수 있을까요?", // applicant asks to confirm about question, so answer should be ""
+      ]	    
+
+      Response:
+      {
+        "question": "이러한 성능 최적화 기법을 적용할 때 네트워크 통신 외에 발생할 수 있는 다른 잠재적인 문제에 대해 어떻게 대응할 수 있는지 예를 들어 설명해주실 수 있나요?",
+        "answer": "" // answer should be "". 
+      }
+
+    example2) 
+      Recent conversations:
+      [
+        ...
+        "면접관: RDBMS와 NoSQL을 사용하는 경우에 대해 여쭤보겠습니다. RDBMS와 NoSQL을 각각 어떤 상황에서 선호하는지, 그리고 이유에 대해 설명해주시겠어요?",
+        "지원자: rdbms라고 하면 관계형 데이터베이스를 말씀하시는 걸로 맞을까요?" // applicant asks to confirm about question, so answer should be ""
+      ]	    
+
+      Response:
+      {
+        "question": "당사의 백엔드 서비스 개발에 있어서 RDBMS와 NoSQL을 사용하는 경우가 다를 텐데, 어떤 상황에서 각각을 선호하시며, 그 이유는 무엇인가요?",
+        "answer": ""  // answer should be "". 
+      }
+
+    example3)
+      Recent conversations:
+      [
+        ...
+        "면접관: Node.js와 Typescript를 사용하여 대규모 트래픽을 처리하는 서비스를 설계하고 구축할 때, 어떤 보안적인 측면을 고려해야 한다고 생각하십니까?",
+        "지원자: 질문이 조금 명확하지 않은데, 구체적인 예시 들어주실 수 있을까요?" // applicant asks to confirm about question, so answer should be ""
+      ]
+      
+      Response:
+      {
+        "question": "Node.js와 Typescript를 사용하여 대규모 트래픽을 처리하는 서비스를 설계하고 구축할 때, 어떤 보안적인 측면을 고려해야 한다고 생각하십니까?",
+        "answer": ""  // answer should be "". 
+      }
 `.trim();
 
     return this.llmManager.predict<{ currInterviewItem: T }>(prompt, { version: 3 });
   }
 
-  private generateTailQuestion(params: { recentConversations: string[] }) {
+  private generateTailQuestion<T extends { question: string }>(params: {
+    currInterviewItem: T;
+    recentConversations: string[];
+  }) {
     const prompt = `
 ### Role:
 You are a senior developer conducting a technical interview.(=interviewer)
-Create a new tail question in Korean based on recent conversations
+Create a new tail question to the rootQuestion in Korean using below information.
+
+### Interview Item:
+An interview item has the following properties
+- question: string; // A question for the interviewer to ask.
+- answer: string; // The applicant's answer.
+- tailQuestions: { // Follow-up questions to the rootQuestion.
+    question: string; 
+    answer: string;
+  }[];
+
+### Current interview item:
+${JSON.stringify(params.currInterviewItem)}
 
 ### Recent converations:
 ${JSON.stringify(params.recentConversations)}
@@ -161,11 +221,13 @@ The response should follow the following JSON format.
 }
 
 ### Steps for response
-- Consider the answer to the rootQuestion and tailQuestion to generate appropriate additional questions.
-- Do not ask same question again which interviewer asked before.
+- Consider current interview item's question.
+- Consider the applicant's answer.
+- Do not create same question again which already exist in current interview item's tailQuestion.
+- Maximum tail question count is ${this.tailQuestionCount}. consider it to create best tailQuestion.
 `.trim();
 
-    return this.llmManager.predict<{ tailQuestion: string }>(prompt, { version: 3 });
+    return this.llmManager.predict<{ tailQuestion: string }>(prompt, { version: 4 });
   }
 
   private async generateReply(params: {
@@ -196,9 +258,9 @@ The response should follow the following JSON format.
 }
 
 ### Steps for response
-- Exclude a reaction to the applicant's answer in reply like "네 ~에 대한 답변 잘 들었습니다."
-- Generate reply using information above to progress interview.
-- Do not repeat same reply.
+- Do not add prefix like '면접관: '.
+- Do not repeat same reply based on Recent conversations.
+- If the applicant asks to confirm the previous question, should include answer about it in reply.
 `.trim();
 
     return this.llmManager.predict<{ reply: string }>(prompt, { version: 3 });

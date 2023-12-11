@@ -39,8 +39,24 @@ export class LlmManager {
       }
 
       console.log('Invalid json format!\n', res);
+      const jsonStr = await this.llmV3.predict(`
+### Task
+I give you invalid JSON string.
+Make it as valid JSON string.
 
-      return JSON.parse(res + '}');
+### Invalid JSON string
+${res}
+
+### Response
+response follow this format.
+{
+  "text": ""
+}
+
+- text is refactored valid JSON string.
+`);
+
+      return JSON.parse(jsonStr);
     }
   }
 }

@@ -159,6 +159,7 @@ Please follow this JSON format for your response.
   "items": [{}]
 }
 - Evaluate for all items & item's tailQuestion elements.
+- If applicant said they don't know or answered incorrectly, then score less than 10.
 - Don't remove tailQuestion elements.
 `.trim();
 
